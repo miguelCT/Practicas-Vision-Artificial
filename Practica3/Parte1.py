@@ -56,6 +56,7 @@ def training ():
                             multi_probe_level=1)
         search_params = dict()
         flann = cv2.FlannBasedMatcher(index_params, search_params)
+        print "hola"
         flann.add(desA)
         #Guardamos los flann de cada imagen
         flannArray.append(flann)
