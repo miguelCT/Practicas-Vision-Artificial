@@ -5,7 +5,7 @@ import os
 import math
 import KeyPoint
 
-os.chdir("./training")
+
 
 arrayOwnKeyPoints = []
 descArray = []
@@ -13,9 +13,9 @@ kpArray = []
 flannArray = []
 
 def calcularCentro(kp, image):
-    height, weight = image.shape[:2]
+    height, width = image.shape[:2]
     centerY = height / 2
-    centerX = weight / 2
+    centerX = width / 2
     angleKp = kp.angle
     xKp, yKp = kp.pt[:2]
 
@@ -27,18 +27,20 @@ def calcularCentro(kp, image):
     distanteToCenterPolar = (module, angle)
     return distanteToCenterPolar
 
-#Entrenamiento con imágenes de prueba
+#Entrenamiento con imagenes de prueba
 def training ():
+    os.chdir("./training")
     for file in glob.glob("*.jpg"):
         I = cv2.imread(file, 0)  # Caragar imagen en grises
         orb = cv2.ORB(nfeatures=100, nlevels=4, scaleFactor=1.3)
         kpA, desA = orb.detectAndCompute(I,None)
-
+        ownKP=[]
         for kp in kpA:
             distanteToCenterPolar = calcularCentro(kp, I)
             keyPoint = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, kp.pt)
-            arrayOwnKeyPoints.append(keyPoint)
+            ownKP.append(keyPoint)
 
+        arrayOwnKeyPoints.append((I.shape, ownKP))
         #Guardamos los kp y los descriptores de cada imagen de entrenamiento para su posterior uso
         descArray.append(desA)
         kpArray.append(kpA)
@@ -56,25 +58,38 @@ def training ():
                             multi_probe_level=1)
         search_params = dict()
         flann = cv2.FlannBasedMatcher(index_params, search_params)
-        print "hola"
         flann.add(desA)
         #Guardamos los flann de cada imagen
         flannArray.append(flann)
 
 
-#Procesamiento de las imágenes para detectar los coches
+#Procesamiento de las imagenes para detectar los coches
 def processing():
+    os.chdir("../processing")
     for flann in flannArray:
+        index = 0
         for file in glob.glob("*.jpg"):
 
-            I = cv2.imread(file, 0)  # Caragar imagen en grises
+            I = cv2.imread(file, 0)  # Caragar imagen en
+
             orb = cv2.ORB(nfeatures=100, nlevels=4, scaleFactor=1.3)
             kpA, desA = orb.detectAndCompute(I,None)
-            matches = flann.knnMatch(desA,descArray[0],k=2)
+            matches = flann.knnMatch(desA,descArray[index],k=2)
             print "------------- imagen -------------"
-            print I
-            print matches
             matchesMask = [[0,0] for i in xrange(len(matches))]
+            for match in matches:
+                for desc in match:
+                    kp = kpA[desc.queryIdx]
+                    distanteToCenterPolar = calcularCentro(kp, I)
+                    keyPoint = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, kp.pt)
+                    trainResolution, kpoints = arrayOwnKeyPoints[index][:2]
+                    # print "Nueva res", I.shape
+                    # print "Antigua res", trainResolution
+                    print "Antiguo nuestro", kpoints[desc.queryIdx]
+                    print "Nuevo nuestro", keyPoint
+
+
+        index += 1
 
 training()
 processing()
