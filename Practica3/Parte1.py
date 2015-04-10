@@ -19,8 +19,8 @@ def calcularCentro(kp, image):
     centerX = width / 2
     angleKp = kp.angle
     xKp, yKp = kp.pt[:2]
-    pt = (centerX, centerY)
-    #Este es eñ vector que une el kp con el centro. Vectpr de votacion
+    center = (centerX, centerY)
+    #Este es el vector que une el kp con el centro. Vector de votacion
     xVector = centerX - xKp
     yVector = centerY - yKp
     vector = (xVector, yVector)
@@ -30,7 +30,7 @@ def calcularCentro(kp, image):
         angle = math.atan((centerX - xKp) / (centerY - yKp))
     else:
         angle = 0
-    distanteToCenterPolar = (module, vector, angle, pt)
+    distanteToCenterPolar = (module, vector, angle, center)
     return distanteToCenterPolar
 
 #Entrenamiento con imagenes de prueba
@@ -49,11 +49,11 @@ def training ():
             keyPoint = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, pos)
             ownKP.append(keyPoint)
             #Obtenemos el centro de la imagen
-            dCMdl, dCAgl, dCPt =  keyPoint.distanceToCenter[:3]
+            dCMdl, dcVector, dCAgl, dCPt =  keyPoint.distanceToCenter[:4]
             cv2.line(I, keyPoint.position, dCPt, (255, 255, 0) , thickness=2, lineType=8, shift=0)
 
         # Guardamos los kpoint y la resolucion de la imagen
-        arrayOwnKeyPoints.append((I.shape, ownKP))
+        arrayOwnKeyPoints.append(ownKP)
         #Guardamos los kp y los descriptores de cada imagen de entrenamiento para su posterior uso
         descArray.append(desA)
         kpArray.append(kpA)
@@ -84,9 +84,9 @@ def processing():
 
             I = cv2.imread(file, 0)  # Caragar imagen en blanco y negro
 
-            orb = cv2.ORB(nfeatures=100, nlevels=4, scaleFactor=1.3)
+            orb = cv2.ORB(nfeatures=500, nlevels=4, scaleFactor=1.3)
             kpA, desA = orb.detectAndCompute(I,None)
-            I = cv2.drawKeypoints(I, kpA, color=(0, 255, 0), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+            ImageKp = cv2.drawKeypoints(I, kpA, color=(0, 255, 0), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             # cv2.imshow("Processing kp", img2)
             # cv2.waitKey()
 
@@ -103,31 +103,47 @@ def processing():
                 for desc in match:
                     kp = kpA[desc.queryIdx]
                     trainingKp = arrayOwnKeyPoints[desc.imgIdx][desc.trainIdx]
-                    #Despues compararemos el trainingKp connel processingKp de mas abajo (tsmaño, y hacer lansuma del vector de votscion)
-
                     distanteToCenterPolar = calcularCentro(kp, I)
                     # Posicion en integer
                     x, y = kp.pt[:2]
                     pos = (int(x), int(y))
                     processingKp = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, pos)
-                    #Obtenemos el centro de la imagen
-                    dCMdl, dCAgl, dCPt =  processingKp.distanceToCenter[:3]
-                    cv2.line(I, processingKp.position, dCPt, (255, 255, 0) , thickness=2, lineType=8, shift=0)
-                    trainResolution, kpoints = arrayOwnKeyPoints[index][:2]
-                    x, y = processingKp.position[:2]
-                    x = x/10
-                    y = y/10
-                    # Hay un problema ya que la imagen con la que creamos la mascara y la imagen de la que se han sacado los kpoint no es del mismo tamanno y por tanto no
-                    # podremos usar la mascara como tal, habra que redimensionar
-                    mask[x][y] += 1
-                    # print "Antiguo nuestro", kpoints[desc.queryIdx]
-                    # print "Nuevo nuestro", keyPoint
+                    print "- training Position", trainingKp.position
+                    print "> processing Positionn", processingKp.position
+                    print "- training Angle", trainingKp.angle
+                    print "> processing Angle", processingKp.angle
+                    print "- training Size", trainingKp.size
+                    print "> processing Size", processingKp.size
+                    print "- training distanteToCenterPolar", trainingKp.distanceToCenter
+                    print "> processing distanteToCenterPolar", processingKp.distanceToCenter
 
-            print "Nueva resolucion", I.shape
-            print "Antigua resolucion", trainResolution
+                    scale = trainingKp.size/processingKp.size
+                    distCenterModule, distCenterVector, distCenterAngle, centerPt =  trainingKp.distanceToCenter [:4]
+                    xVector, yVector=  distCenterVector[:2]
+                    newX = xVector*scale
+                    newY = yVector*scale
+                    votingVector = (newX, newY)
+
+                    processingKpX,processingKpY = processingKp.position[:2]
+                    voteX =  int((newX + processingKpX)/10)
+                    voteY =  int((newY + processingKpY)/10)
+                    vote = (voteX, voteY)
+                    print mask.shape
+                    maskX, maskY = mask.shape[:2]
+                    if(voteX<maskX and voteX>=0 and voteY<maskY and voteY>=0):
+                        mask[voteX][voteY] += 1
+                        print  mask[voteX][voteY]
+                    print "-----------------"
+
 
             print mask
-            cv2.imshow("Processing kp", I)
+
+            #Una vez tengamos la mascara lo que hay que hacer es reescalarla para ver su resultado con resize (interopolando para no perder la forma)
+            indexX = 0
+            for voteX in mask:
+                print voteX
+
+            cv2.imshow("Processing kp", ImageKp)
             cv2.imshow("Processing mask", mask)
             cv2.waitKey()
         index += 1
