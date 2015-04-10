@@ -20,13 +20,17 @@ def calcularCentro(kp, image):
     angleKp = kp.angle
     xKp, yKp = kp.pt[:2]
     pt = (centerX, centerY)
+    #Este es eñ vector que une el kp con el centro. Vectpr de votacion
+    xVector = centerX - xKp
+    yVector = centerY - yKp
+    vector = (xVector, yVector)
 
     module = int(math.sqrt(math.pow((centerX - xKp), 2) + math.pow((centerY - yKp), 2)))
     if (centerY - yKp) != 0:
         angle = math.atan((centerX - xKp) / (centerY - yKp))
     else:
         angle = 0
-    distanteToCenterPolar = (module, angle, pt)
+    distanteToCenterPolar = (module, vector, angle, pt)
     return distanteToCenterPolar
 
 #Entrenamiento con imagenes de prueba
@@ -86,7 +90,7 @@ def processing():
             # cv2.imshow("Processing kp", img2)
             # cv2.waitKey()
 
-            matches = flann.knnMatch(desA,descArray[index],k=2)
+            matches = flann.knnMatch(desA,descArray[index],k=5)
             print "------------- imagen -------------"
             matchesMask = [[0,0] for i in xrange(len(matches))]
             xImage,yImage = I.shape[:2]
@@ -98,16 +102,19 @@ def processing():
             for match in matches:
                 for desc in match:
                     kp = kpA[desc.queryIdx]
+                    trainingKp = arrayOwnKeyPoints[desc.imgIdx][desc.trainIdx]
+                    #Despues compararemos el trainingKp connel processingKp de mas abajo (tsmaño, y hacer lansuma del vector de votscion)
+
                     distanteToCenterPolar = calcularCentro(kp, I)
                     # Posicion en integer
                     x, y = kp.pt[:2]
                     pos = (int(x), int(y))
-                    keyPointProcessing = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, pos)
+                    processingKp = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, pos)
                     #Obtenemos el centro de la imagen
-                    dCMdl, dCAgl, dCPt =  keyPointProcessing.distanceToCenter[:3]
-                    cv2.line(I, keyPointProcessing.position, dCPt, (255, 255, 0) , thickness=2, lineType=8, shift=0)
+                    dCMdl, dCAgl, dCPt =  processingKp.distanceToCenter[:3]
+                    cv2.line(I, processingKp.position, dCPt, (255, 255, 0) , thickness=2, lineType=8, shift=0)
                     trainResolution, kpoints = arrayOwnKeyPoints[index][:2]
-                    x, y = keyPointProcessing.position[:2]
+                    x, y = processingKp.position[:2]
                     x = x/10
                     y = y/10
                     # Hay un problema ya que la imagen con la que creamos la mascara y la imagen de la que se han sacado los kpoint no es del mismo tamanno y por tanto no
