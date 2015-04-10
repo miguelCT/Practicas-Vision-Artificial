@@ -78,11 +78,12 @@ def training ():
 #Procesamiento de las imagenes para detectar los coches
 def processing():
     os.chdir("../processing")
-    for flann in flannArray:
+    for file in glob.glob("*.jpg"):
         index = 0
-        for file in glob.glob("*.jpg"):
+        I = cv2.imread(file, 0)  # Caragar imagen en blanco y negro
+        totalMask = np.zeros(I.shape,np.uint8)
+        for flann in flannArray:
 
-            I = cv2.imread(file, 0)  # Caragar imagen en blanco y negro
 
             orb = cv2.ORB(nfeatures=500, nlevels=4, scaleFactor=1.3)
             kpA, desA = orb.detectAndCompute(I,None)
@@ -91,7 +92,7 @@ def processing():
             # cv2.waitKey()
 
             matches = flann.knnMatch(desA,descArray[index],k=5)
-            print "------------- imagen -------------"
+            # print "------------- imagen -------------"
             matchesMask = [[0,0] for i in xrange(len(matches))]
             xImage,yImage = I.shape[:2]
             xImage = xImage/10
@@ -108,14 +109,14 @@ def processing():
                     x, y = kp.pt[:2]
                     pos = (int(x), int(y))
                     processingKp = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, pos)
-                    print "- training Position", trainingKp.position
-                    print "> processing Positionn", processingKp.position
-                    print "- training Angle", trainingKp.angle
-                    print "> processing Angle", processingKp.angle
-                    print "- training Size", trainingKp.size
-                    print "> processing Size", processingKp.size
-                    print "- training distanteToCenterPolar", trainingKp.distanceToCenter
-                    print "> processing distanteToCenterPolar", processingKp.distanceToCenter
+                    # print "- training Position", trainingKp.position
+                    # print "> processing Positionn", processingKp.position
+                    # print "- training Angle", trainingKp.angle
+                    # print "> processing Angle", processingKp.angle
+                    # print "- training Size", trainingKp.size
+                    # print "> processing Size", processingKp.size
+                    # print "- training distanteToCenterPolar", trainingKp.distanceToCenter
+                    # print "> processing distanteToCenterPolar", processingKp.distanceToCenter
 
                     scale = trainingKp.size/processingKp.size
                     distCenterModule, distCenterVector, distCenterAngle, centerPt =  trainingKp.distanceToCenter [:4]
@@ -128,25 +129,28 @@ def processing():
                     voteX =  int((newX + processingKpX)/10)
                     voteY =  int((newY + processingKpY)/10)
                     vote = (voteX, voteY)
-                    print mask.shape
                     maskX, maskY = mask.shape[:2]
-                    if(voteX<maskX and voteX>=0 and voteY<maskY and voteY>=0):
-                        mask[voteX][voteY] += 1
-                        print  mask[voteX][voteY]
-                    print "-----------------"
+                    if(voteX<maskY and voteX>=0 and voteY<maskX and voteY>=0):
+                        #Le damos la vuelta para que luego la imagen salga correcta
+                        mask[voteY][voteX] += 1
+                        #     print  mask[voteX][voteY]
+                        # print "-----------------"
 
 
-            print mask
 
             #Una vez tengamos la mascara lo que hay que hacer es reescalarla para ver su resultado con resize (interopolando para no perder la forma)
             indexX = 0
-            for voteX in mask:
-                print voteX
-
-            cv2.imshow("Processing kp", ImageKp)
-            cv2.imshow("Processing mask", mask)
-            cv2.waitKey()
+            bigMask = np.zeros(I.shape,np.uint8)
+            xImage, yImage = I.shape[:2]
+            bigMask = cv2.resize(mask, (yImage, xImage), interpolation=cv2.INTER_NEAREST)
+            minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(bigMask)
+            #Normalizamos
+            bigMask = bigMask//maxVal*255
+            totalMask = totalMask+bigMask
+            cv2.imshow("Processing image kp", ImageKp)
+            cv2.imshow("Processing normalized mask", totalMask)
         index += 1
+        cv2.waitKey()
 
 training()
 processing()
