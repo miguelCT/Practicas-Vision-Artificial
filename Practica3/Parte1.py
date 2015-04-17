@@ -38,7 +38,7 @@ def training ():
     os.chdir("./training")
     for file in glob.glob("*.jpg"):
         I = cv2.imread(file, 0)  # Caragar imagen en grises
-        orb = cv2.ORB(nfeatures=100, nlevels=4, scaleFactor=1.3)
+        orb = cv2.ORB(nfeatures=500, nlevels=4, scaleFactor=1.3)
         kpA, desA = orb.detectAndCompute(I,None)
         ownKP=[]
         for kp in kpA:
@@ -58,8 +58,8 @@ def training ():
         descArray.append(desA)
         kpArray.append(kpA)
         I = cv2.drawKeypoints(I, kpA, color=(0, 255, 0), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        cv2.imshow("Result", I)
-        cv2.waitKey()
+        #cv2.imshow("Result", I)
+        #cv2.waitKey()
         #cv2.imshow("Result2", img2)
         # cv2.waitKey()
 
@@ -80,7 +80,10 @@ def processing():
     os.chdir("../processing")
     for file in glob.glob("*.jpg"):
         index = 0
-        I = cv2.imread(file, 0)  # Caragar imagen en blanco y negro
+
+        print ""
+        print "Imagen: ",file.title()
+        I = cv2.imread(file, 0)  # Cargar imagen en blanco y negro
         totalMask = np.zeros(I.shape,np.uint8)
         for flann in flannArray:
 
@@ -122,34 +125,53 @@ def processing():
                     pos = (int(x), int(y))
 
                     processingKp = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, pos)
-                    # print "- training Position", trainingKp.position
-                    # print "> processing Positionn", processingKp.position
-                    # print "- training Angle", trainingKp.angle
-                    # print "> processing Angle", processingKp.angle
-                    # print "- training Size", trainingKp.size
-                    # print "> processing Size", processingKp.size
-                    # print "- training distanteToCenterPolar", trainingKp.distanceToCenter
-                    # print "> processing distanteToCenterPolar", processingKp.distanceToCenter
+                    #print "- training Position", trainingKp.position
+                    #print "> processing Positionn", processingKp.position
+                    #print "- training Angle", trainingKp.angle
+                    #print "> processing Angle", processingKp.angle
+                    #print "- training Size", trainingKp.size
+                    #print "> processing Size", processingKp.size
+                    #print "- training distanteToCenterPolar", trainingKp.distanceToCenter
+                    #print "> processing distanteToCenterPolar", processingKp.distanceToCenter
 
 
 
                     #Rotamos el Kp y reescalamos su distancia hacia el centro
                     #   Reescalado: trainingKp.size/processingKp.size
-                    #   Rotamos: processingKp.angle += trainingKp.angle
+                    #   Rotamos: ¿? Aplicar rotacion al angulo de rotacion para que vote a su centro
 
                     scale = trainingKp.size/processingKp.size
                     distCenterModule, distCenterVector, distCenterAngle, centerPt =  trainingKp.distanceToCenter [:4]
                     xVector, yVector=  distCenterVector[:2]
                     newX = xVector*scale
                     newY = yVector*scale
-                    processingKp.angle += trainingKp.angle
+
+
+                    #processingdistCenterModule, processingdistCenterVector, processingdistCenterAngle, processingcenterPt =  processingKp.distanceToCenter [:4]
 
                     votingVector = (newX, newY)
+
+                    #rotationAngle= processingdistCenterAngle - distCenterAngle
 
                     processingKpX,processingKpY = processingKp.position[:2]
                     voteX =  int((newX + processingKpX)/10)
                     voteY =  int((newY + processingKpY)/10)
+
+                    #print "Antes. Voto: "
+                    #print "X: ",voteX, " Y", voteY
+
+                    #print "Angulo original: ", distCenterAngle
+                    #print "Angulo procesamiento: ", processingdistCenterAngle
+
+                    #Aplicacion de matriz de rotacion para rotar el vector de votacion
+                    #voteX = voteX*math.cos(rotationAngle) + voteY*math.sin(rotationAngle)
+                    #voteY = voteX* (-math.sin(rotationAngle)) + voteY * math.cos(rotationAngle)
+
+                    #print "Despues. Voto: "
+                    #print "X: ",voteX, " Y", voteY
+
                     vote = (voteX, voteY)
+
                     maskX, maskY = mask.shape[:2]
                     if(voteX<maskY and voteX>=0 and voteY<maskX and voteY>=0):
                         #Le damos la vuelta para que luego la imagen salga correcta
