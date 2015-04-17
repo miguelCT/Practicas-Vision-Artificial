@@ -58,9 +58,9 @@ def training ():
         descArray.append(desA)
         kpArray.append(kpA)
         I = cv2.drawKeypoints(I, kpA, color=(0, 255, 0), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        # cv2.imshow("Result", I)
-        # cv2.waitKey()
-        # cv2.imshow("Result2", img2)
+        cv2.imshow("Result", I)
+        cv2.waitKey()
+        #cv2.imshow("Result2", img2)
         # cv2.waitKey()
 
         FLANN_INDEX_LSH = 6
@@ -105,18 +105,22 @@ def processing():
                     kp = kpA[desc.queryIdx]
                     trainingKp = arrayOwnKeyPoints[desc.imgIdx][desc.trainIdx]
                     distanteToCenterPolar = calcularCentro(kp, I)
-<<<<<<< HEAD
+                    
+
+
+
+
                     keyPoint = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, kp.pt)
                     trainResolution, kpoints = arrayOwnKeyPoints[index][:2]
                     # print "Nueva res", I.shape
                     # print "Antigua res", trainResolution
-                    print "entrenamiento nuestro", kpoints[desc.queryIdx].angle
-                    print "Procesmiento nuestro", keyPoint.angle
+                   # print "entrenamiento nuestro", kpoints[desc.queryIdx].angle
+                    #print "Procesmiento nuestro", keyPoint.angle
 
-=======
                     # Posicion en integer
                     x, y = kp.pt[:2]
                     pos = (int(x), int(y))
+
                     processingKp = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, pos)
                     # print "- training Position", trainingKp.position
                     # print "> processing Positionn", processingKp.position
@@ -127,11 +131,19 @@ def processing():
                     # print "- training distanteToCenterPolar", trainingKp.distanceToCenter
                     # print "> processing distanteToCenterPolar", processingKp.distanceToCenter
 
+
+
+                    #Rotamos el Kp y reescalamos su distancia hacia el centro
+                    #   Reescalado: trainingKp.size/processingKp.size
+                    #   Rotamos: processingKp.angle += trainingKp.angle
+
                     scale = trainingKp.size/processingKp.size
                     distCenterModule, distCenterVector, distCenterAngle, centerPt =  trainingKp.distanceToCenter [:4]
                     xVector, yVector=  distCenterVector[:2]
                     newX = xVector*scale
                     newY = yVector*scale
+                    processingKp.angle += trainingKp.angle
+
                     votingVector = (newX, newY)
 
                     processingKpX,processingKpY = processingKp.position[:2]
@@ -160,7 +172,6 @@ def processing():
 
             totalMask = totalMask+acumulativeMask
             cv2.imshow("Processing image kp", ImageKp)
->>>>>>> origin/master
 
         index += 1
         minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(totalMask)
