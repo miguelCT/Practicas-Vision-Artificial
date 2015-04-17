@@ -10,7 +10,7 @@ import glob
 
 #Busca los rectangulos donde cree que esta la imagen
 def detect(img, cascade,vecinos,size):
-    rects = cascade.detectMultiScale(img,scaleFactor=1.1, minNeighbors=vecinos, minSize=(size,size), flags=cv.CV_HAAR_SCALE_IMAGE)
+    rects = cascade.detectMultiScale(img,scaleFactor=1.2, minNeighbors=vecinos, minSize=(size,size), flags=cv.CV_HAAR_SCALE_IMAGE)
     if len(rects) == 0:
         return []
     rects[:,2:] += rects[:,:2]
@@ -32,12 +32,12 @@ def detectarCoches():
 
     cascade = cv2.CascadeClassifier(cascade_file)
 
+    os.chdir("../processing")
     for file in glob.glob("*.jpg"):
-
         print("Imagen: ",file)
-        img = cv2.imread(file,0)
+        img = cv2.imread(file,1)
 
-        rectangulos = detect(img, cascade,2,120)
+        rectangulos = detect(img, cascade, 2, 120)
 
         #Pintar los rectangulos donde se supone que esta la imagen
         if len(rectangulos)==0 :
@@ -63,11 +63,12 @@ def detectorMatriculas():
 
     cascade = cv2.CascadeClassifier(cascade_file)
 
+    os.chdir("../processing")
 
     for file in glob.glob("*.jpg"):
 
         print("Imagen: ",file)
-        img = cv2.imread(file,0)
+        img = cv2.imread(file,1)
 
         rectangulos = detect(img, cascade,4,30)
 
