@@ -85,8 +85,8 @@ def processing():
                     trainResolution, kpoints = arrayOwnKeyPoints[index][:2]
                     # print "Nueva res", I.shape
                     # print "Antigua res", trainResolution
-                    print "Antiguo nuestro", kpoints[desc.queryIdx]
-                    print "Nuevo nuestro", keyPoint
+                    print "entrenamiento nuestro", kpoints[desc.queryIdx].angle
+                    print "Procesmiento nuestro", keyPoint.angle
 
 
         index += 1
