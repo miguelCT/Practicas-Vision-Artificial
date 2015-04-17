@@ -133,23 +133,31 @@ def processing():
                     if(voteX<maskY and voteX>=0 and voteY<maskX and voteY>=0):
                         #Le damos la vuelta para que luego la imagen salga correcta
                         mask[voteY][voteX] += 1
-                        #     print  mask[voteX][voteY]
+
+
                         # print "-----------------"
 
 
 
             #Una vez tengamos la mascara lo que hay que hacer es reescalarla para ver su resultado con resize (interopolando para no perder la forma)
             indexX = 0
-            bigMask = np.zeros(I.shape,np.uint8)
+            acumulativeMask = np.zeros(I.shape,np.uint8)
             xImage, yImage = I.shape[:2]
-            bigMask = cv2.resize(mask, (yImage, xImage), interpolation=cv2.INTER_NEAREST)
-            minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(bigMask)
+            acumulativeMask = cv2.resize(mask, (yImage, xImage), interpolation=cv2.INTER_NEAREST)
+            minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(acumulativeMask)
             #Normalizamos
-            bigMask = bigMask//maxVal*255
-            totalMask = totalMask+bigMask
+            # acumulativeMask = acumulativeMask//maxVal*255
+            # cv2.imshow("Processing normalized mask", acumulativeMask)
+
+            totalMask = totalMask+acumulativeMask
             cv2.imshow("Processing image kp", ImageKp)
-            cv2.imshow("Processing normalized mask", totalMask)
+
         index += 1
+        minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(totalMask)
+        cv2.imshow("Processing NOT normalized mask", totalMask)
+
+        totalMask = totalMask//maxVal*255
+        cv2.imshow("Processing normalized mask", totalMask)
         cv2.waitKey()
 
 training()
