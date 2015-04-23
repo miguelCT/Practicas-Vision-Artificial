@@ -9,7 +9,7 @@ import numpy as np
 
 
 arrayOwnKeyPoints = []
-descArray = []
+globalDescArray = []
 kpArray = []
 flannArray = []
 
@@ -33,6 +33,7 @@ def calcularCentro(kp, image):
     distanteToCenterPolar = (module, vector, angle, center)
     return distanteToCenterPolar
 
+
 #Entrenamiento con imagenes de prueba
 def training ():
     os.chdir("./training")
@@ -55,7 +56,7 @@ def training ():
         # Guardamos los kpoint y la resolucion de la imagen
         arrayOwnKeyPoints.append(ownKP)
         #Guardamos los kp y los descriptores de cada imagen de entrenamiento para su posterior uso
-        descArray.append(desA)
+        globalDescArray.append(desA)
         kpArray.append(kpA)
         I = cv2.drawKeypoints(I, kpA, color=(0, 255, 0), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         #cv2.imshow("Result", I)
@@ -81,131 +82,104 @@ def processing():
     for file in glob.glob("*.jpg"):
         index = 0
 
-        print ""
-        print "Imagen: ",file.title()
-        I = cv2.imread(file, 0)  # Cargar imagen en blanco y negro
-        totalMask = np.zeros(I.shape,np.uint8)
+        processingImage = cv2.imread(file, 0)  # Cargar imagen en blanco y negro
+        finalMask = np.zeros(processingImage.shape, np.uint8)
+        cv2.imshow("Processing empty finalMask", finalMask)
+
         for flann in flannArray:
 
 
             orb = cv2.ORB(nfeatures=10, nlevels=4, scaleFactor=1.3)
-            kpA, desA = orb.detectAndCompute(I,None)
-            ImageKp = cv2.drawKeypoints(I, kpA, color=(0, 255, 0), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+            kpProcessingArray, descProcessingArray = orb.detectAndCompute(processingImage,None)
+            imageWithKp = cv2.drawKeypoints(processingImage, kpProcessingArray, color=(0, 255, 0), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             # cv2.imshow("Processing kp", img2)
             # cv2.waitKey()
 
-            matches = flann.knnMatch(desA,descArray[index],k=5)
+            matches = flann.knnMatch(descProcessingArray, globalDescArray[index], k=5)
             # print "------------- imagen -------------"
-            matchesMask = [[0,0] for i in xrange(len(matches))]
-            xImage,yImage = I.shape[:2]
-            xImage = xImage/10
-            yImage = yImage/10
+            xProcesingImage,yProcessingImage = processingImage.shape[:2]
+            xProcesingImage = xProcesingImage/10
+            yProcessingImage = yProcessingImage/10
             # Creamos la mascara donde iremos anotando los ptos que coinciden
-            mask = np.zeros((xImage,yImage),np.uint8)
-
+            processinImageMask = np.zeros((xProcesingImage,yProcessingImage), np.uint8)
+            cv2.imshow("Processing empty mask", processinImageMask)
             for match in matches:
                 for desc in match:
-                    kp = kpA[desc.queryIdx]
+                    kp = kpProcessingArray[desc.queryIdx]
                     trainingKp = arrayOwnKeyPoints[desc.imgIdx][desc.trainIdx]
-                    distanteToCenterPolar = calcularCentro(kp, I)
-
-
-
-
-
-                    keyPoint = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, kp.pt)
+                    distanteToCenterPolar = calcularCentro(kp, processingImage)
                     trainResolution, kpoints = arrayOwnKeyPoints[index][:2]
-                    # print "Nueva res", I.shape
-                    # print "Antigua res", trainResolution
-                    # print "entrenamiento nuestro", kpoints[desc.queryIdx].angle
-                    #print "Procesmiento nuestro", keyPoint.angle
-
                     # Posicion en integer
                     x, y = kp.pt[:2]
                     pos = (int(x), int(y))
 
                     processingKp = KeyPoint.KeyPoint(kp.angle, distanteToCenterPolar, kp.size, pos)
-                    #print "- training Position", trainingKp.position
-                    #print "> processing Positionn", processingKp.position
-                    #print "- training Angle", trainingKp.angle
-                    #print "> processing Angle", processingKp.angle
-                    #print "- training Size", trainingKp.size
-                    #print "> processing Size", processingKp.size
-                    #print "- training distanteToCenterPolar", trainingKp.distanceToCenter
-                    #print "> processing distanteToCenterPolar", processingKp.distanceToCenter
-
-
-
-                    #Rotamos el Kp y reescalamos su distancia hacia el centro
+                   #Rotamos el Kp y reescalamos su distancia hacia el centro
                     #   Reescalado: trainingKp.size/processingKp.size
                     #   Rotamos: Aplicar rotacion al angulo de rotacion para que vote a su centro
 
                     scale = trainingKp.size/processingKp.size
                     distCenterModule, distCenterVector, distCenterAngle, centerPt =  trainingKp.distanceToCenter [:4]
-                    xVector, yVector=  distCenterVector[:2]
-                    newX = xVector*scale
-                    newY = yVector*scale
+                    xVector, yVector =  distCenterVector[:2]
+                    xVectorScaled = xVector*scale
+                    yVectorScaled = yVector*scale
 
                     processingdistCenterModule, processingdistCenterVector, processingdistCenterAngle, processingcenterPt =  processingKp.distanceToCenter [:4]
 
-                    votingVector = (newX, newY)
+                    votingVector = (xVectorScaled, yVectorScaled)
 
-                    rotationAngle=distCenterAngle - processingdistCenterAngle
-
+                    rotationAngle = trainingKp.angle - processingKp.angle
 
 
                     processingKpX,processingKpY = processingKp.position[:2]
-                    voteX =  int((newX + processingKpX)/10)
-                    voteY =  int((newY + processingKpY)/10)
+                    voteX = int((xVectorScaled + processingKpX)/10)
+                    voteY = int((yVectorScaled + processingKpY)/10)
                     #
-                    # print "Antes. Voto: "
-                    # print "X: ",voteX, " Y", voteY
-                    #
-                    # print "Angulo original: ", distCenterAngle
-                    # print "Angulo procesamiento: ", processingdistCenterAngle
-                    #
-                    # Aplicacion de matriz de rotacion para rotar el vector de votacion
-                    voteX = int(voteX*math.cos(rotationAngle) - voteY*math.sin(rotationAngle))
-                    voteY = int(voteX*math.sin(rotationAngle) + voteY * math.cos(rotationAngle))
-
-                    print "Despues. Voto: "
+                    print "Antes rot: "
                     print "X: ",voteX, " Y", voteY
+                    #
+                    print "Angulo kp testing: ", trainingKp.angle
+                    print "Angulo kp procesamiento: ", processingKp.angle
+                    print "Angulo rotacion: ", rotationAngle
+                    #
+                    # Rotacion del vector de votacion
+                    voteXrotated = int(voteX*math.cos(rotationAngle) - voteY*math.sin(rotationAngle))
+                    voteYrotated = int(voteX*math.sin(rotationAngle) + voteY * math.cos(rotationAngle))
 
-                    vote = (voteX, voteY)
-                    voteX10 = voteX*10
-                    voteY10 = voteY*10
+                    print "Despues rot: "
+                    print "X: ",voteXrotated, " Y", voteYrotated
+
+                    vote = (voteXrotated, voteYrotated)
+                    voteX10 = voteXrotated*10
+                    voteY10 = voteYrotated*10
                     vote10 = (voteX10, voteY10)
-                    # cv2.line(I, processingKp.position, vote10, (255, 255, 0) , thickness=2, lineType=8, shift=0)
+                    cv2.line(processingImage, processingKp.position, vote10, (255, 255, 0) , thickness=2, lineType=8, shift=0)
 
-                    maskX, maskY = mask.shape[:2]
-                    if(voteX<maskY and voteX>=0 and voteY<maskX and voteY>=0):
+                    maskX, maskY = processinImageMask.shape[:2]
+                    if(voteXrotated<maskY and voteXrotated>=0 and voteYrotated<maskX and voteYrotated>=0):
                         #Le damos la vuelta para que luego la imagen salga correcta
-                        mask[voteY][voteX] += 1
+                        processinImageMask[voteYrotated][voteXrotated] += 1
 
 
-                        # print "-----------------"
-
-                #Una vez tengamos la mascara lo que hay que hacer es reescalarla para ver su resultado con resize (interopolando para no perder la forma)
-
-            cv2.imshow("Processing image lines", I)
+            #Una vez tengamos la mascara lo que hay que hacer es reescalarla para ver su resultado con resize (interopolando para no perder la forma)
+            cv2.imshow("Processing image lines", processingImage)
             indexX = 0
-            acumulativeMask = np.zeros(I.shape,np.uint8)
-            xImage, yImage = I.shape[:2]
-            acumulativeMask = cv2.resize(mask, (yImage, xImage), interpolation=cv2.INTER_NEAREST)
-            minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(acumulativeMask)
+            xImage, yImage = processingImage.shape[:2]
+            processinImageMask = cv2.resize(processinImageMask, (yImage, xImage), interpolation=cv2.INTER_NEAREST)
+            minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(processinImageMask)
             #Normalizamos
             # acumulativeMask = acumulativeMask//maxVal*255
             # cv2.imshow("Processing normalized mask", acumulativeMask)
 
-            totalMask = totalMask+acumulativeMask
-            cv2.imshow("Processing image kp", ImageKp)
+            finalMask = finalMask+processinImageMask
+            cv2.imshow("Processing image kp", imageWithKp)
 
         index += 1
-        minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(totalMask)
-        cv2.imshow("Processing NOT normalized mask", totalMask)
+        minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(finalMask)
+        cv2.imshow("Processing NOT normalized mask", finalMask)
 
-        totalMask = totalMask//maxVal*255
-        cv2.imshow("Processing normalized mask", totalMask)
+        finalMask = finalMask//maxVal*255
+        cv2.imshow("Processing normalized mask", finalMask)
         cv2.waitKey()
 
 training()
