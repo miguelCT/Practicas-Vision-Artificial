@@ -1,4 +1,4 @@
-__author__ = 'Karen'
+__author__ = 'Karen,Edu,Miguel'
 import cv2
 import numpy as np
 import glob
@@ -13,13 +13,10 @@ def detect(img, cascade, vecinos, size):
     rects[:,2:] += rects[:,:2]
     return rects
 
-
-
 #Pinta los rectangulos
 def draw_rects(img,rects,color):
     x1,y1,x2,y2 = rects
     cv2.rectangle(img,(x1,y1),(x2,y2),color,2)
-
 
 def detectorMatriculas(img):
 
@@ -32,62 +29,127 @@ def detectorMatriculas(img):
 
     return rectangulos
 
+def pintarContornos (imagen,contornos):
 
-os.chdir("./testing_ocr")
-for file in glob.glob("*.jpg"):
-
-    imagen = cv2.imread(file,0)
-    imagenUmbralizada=cv2.adaptiveThreshold(imagen,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-            cv2.THRESH_BINARY,11,2)
-
-    cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
-
-    imagenContornos = imagenUmbralizada
-    contornos, jerarquiaContornos=cv2.findContours(imagenContornos, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-
-    rectangulos = detectorMatriculas(imagen)
-
-
-    #Pintar las matriculas donde se supone que esta en la imagen
-    if len(rectangulos)==0 :
-        print("Rectangulos vacios")
-    else:
-        matricula = rectangulos[0]
-        x1Matricula,y1Matricula,x2Matricula,y2Matricula = matricula
-
-
-    pintado = 0
-    noPintado = 0
-
-    #cv2.drawContours(imagenContornos, contornos, -1, (255, 255, 255))
     for contorno in contornos:
         x,y,w,h = cv2.boundingRect(contorno)
         x1Contorno = x
         y1Contorno = y
         x2Contorno = x+w
         y2Contorno = y+h
-        #ratio = float(w)/h
-        print("")
-        print ("Matricula: ")
-        print ("x: ",x1Matricula,"y: ",y1Matricula,"x2: ",x2Matricula,"y2 ",y2Matricula)
-        print ("Contorno: ")
-        print ("x: ", x1Contorno, "y: ", y1Contorno, "x2: ", x2Contorno, "y2 ", y2Contorno)
+
+        cv2.rectangle(imagen, (x1Contorno, y1Contorno), (x2Contorno, y2Contorno), (255, 255, 255))
+
+def filtrarContornos(contornos,matricula):
+
+    contornosEnMatricula = []
+
+    # print("")
+    # print ("Matricula: ")
+    # print ("x: ",x1Matricula,"y: ",y1Matricula,"x2: ",x2Matricula,"y2 ",y2Matricula)
+    # print ("Contorno: ")
+    # print ("x: ", x1Contorno, "y: ", y1Contorno, "x2: ", x2Contorno, "y2 ", y2Contorno)
+
+    for contorno in contornos:
+        x,y,w,h = cv2.boundingRect(contorno)
+        x1Contorno = x
+        y1Contorno = y
+        x2Contorno = x+w
+        y2Contorno = y+h
+
+        x1Matricula,y1Matricula,x2Matricula,y2Matricula = matricula
+
+        ladoXContorno = x2Contorno-x1Contorno
+        ladoYContorno = y2Contorno-y1Contorno
 
 
 
-        cv2.rectangle(imagenContornos, (x1Matricula, y1Matricula), (x2Matricula, y2Matricula), (255, 255, 255))
-        if (((x2Contorno-x1Contorno)< (y2Contorno-y1Contorno)) & ((x2Contorno-x1Contorno)> 10) & ((y2Contorno-y1Contorno) > 10)):
-             if (x1Contorno >= x1Matricula) & (x2Contorno <=x2Matricula) & (y1Contorno >= y1Matricula) & (y2Contorno <= y2Matricula):
-                pintado += 1
-                #cv2.line(imagenContornos,(x1Matricula,y1Matricula),(x2Matricula,y2Matricula),color=(255, 255, 255))
-                #cv2.line(imagenContornos,(x1Contorno,y1Contorno),(x2Contorno,y2Contorno),color=(255, 255, 255))
-                cv2.rectangle(imagenContornos, (x1Contorno, y1Contorno), (x2Contorno, y2Contorno), (255, 255, 255))
+        #Verficar que es alto que ancho y que tiene mas de 10 x 10 pixeles
+        if (((ladoXContorno) < (ladoYContorno)) & ((ladoXContorno) > 10) & ((ladoYContorno) > 10)) and \
+            (x1Contorno >= x1Matricula) & (x2Contorno <= x2Matricula) & \
+            (y1Contorno >= y1Matricula) & (y2Contorno <= y2Matricula):
+
+            contornosEnMatricula.append(contorno)
+
+
+    return contornosEnMatricula
+
+def umbralizarImagen(imagen):
+    imagenUmbralizada=cv2.adaptiveThreshold(imagen,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv2.THRESH_BINARY_INV,75,10)
+    return imagenUmbralizada
+
+def testing():
+    os.chdir("./testing_ocr")
+    for file in glob.glob("*.jpg"):
+
+        imagen = cv2.imread(file,0)
+
+        imagenUmbralizada = umbralizarImagen(imagen)
+        cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
+
+
+        contornos, jerarquiaContornos=cv2.findContours(imagenUmbralizada, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+
+        rectangulos = detectorMatriculas(imagen)
+
+
+        #Pintar las matriculas donde se supone que esta en la imagen
+
+        if len(rectangulos)== 0 :
+            print("Rectangulos vacios")
         else:
-            noPintado += 1
+            matricula = rectangulos[0]
 
-    print ("Pintado: ", pintado)
-    print ("No Pintado: ", noPintado)
-    print ("Total: ", pintado + noPintado)
+            #BORRAR
+            x1Matricula,y1Matricula,x2Matricula,y2Matricula = matricula
+            cv2.rectangle(imagenUmbralizada, (x1Matricula, y1Matricula), (x2Matricula, y2Matricula), (255, 255, 255))
 
-    cv2.imshow("Contornos", imagenContornos)
-    cv2.waitKey()
+            #FIN BORRAR
+            contornosEnMatricula=filtrarContornos(contornos,matricula)
+
+            if len(contornosEnMatricula) != 0:
+                pintarContornos(imagenUmbralizada,contornosEnMatricula)
+            else:
+                print("Contornos vacios")
+
+        cv2.imshow("Contornos", imagenUmbralizada)
+        cv2.waitKey()
+
+def training():
+    os.chdir("../training_ocr")
+    for file in glob.glob("*.jpg"):
+
+        imagen = cv2.imread(file,0)
+
+        imagenUmbralizada = umbralizarImagen(imagen)
+
+        contornos, jerarquiaContornos=cv2.findContours(imagenUmbralizada, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+
+        for contorno in contornos:
+            x,y,w,h = cv2.boundingRect(contorno)
+            x1Contorno = x
+            y1Contorno = y
+            x2Contorno = x+w
+            y2Contorno = y+h
+            ladoXContorno = x2Contorno-x1Contorno
+            ladoYContorno = y2Contorno-y1Contorno
+
+
+            contornosEnNumero= []
+            #Verficar que es alto que ancho y que tiene mas de 10 x 10 pixeles
+            if (((ladoXContorno) < (ladoYContorno)) & ((ladoXContorno) > 10) & ((ladoYContorno) > 10)):
+                contornosEnNumero.append(contorno)
+
+        pintarContornos(imagenUmbralizada,contornosEnNumero)
+
+        cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
+        cv2.waitKey()
+
+
+
+def main():
+    testing()
+    training()
+
+main()
