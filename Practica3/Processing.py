@@ -1,5 +1,4 @@
 __author__ = 'Miguel'
-__author__ = 'Miguel'
 import cv2
 import glob
 import os
@@ -67,7 +66,6 @@ class Processing:
             for flann in self.flannArray:
                 orb = cv2.ORB(nfeatures=kpNum, nlevels=4, scaleFactor=1.3)
                 kpProcessingArray, descProcessingArray = orb.detectAndCompute(processingImage,None)
-                imageWithKp = cv2.drawKeypoints(processingImage, kpProcessingArray, color=(0, 255, 0), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
                 xProcesingImage,yProcessingImage = processingImage.shape[:2]
                 xProcesingImage = xProcesingImage/10
                 yProcessingImage = yProcessingImage/10
@@ -77,7 +75,6 @@ class Processing:
                 processingImageMask = self.processMatches(matches, processingImage, emptyImageMask, kpProcessingArray)
 
                 #Una vez tengamos la mascara lo que hay que hacer es reescalarla para ver su resultado con resize (interopolando para no perder la forma)
-                # cv2.imshow("Processing image lines", processingImage)
                 indexX = 0
                 xImage, yImage = processingImage.shape[:2]
                 processingImageMask = cv2.resize(processingImageMask, (yImage, xImage), interpolation=cv2.INTER_NEAREST)
@@ -86,14 +83,10 @@ class Processing:
 
             # cv2.imshow("Processing image kp", imageWithKp)
             minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(finalMask)
-            cv2.imshow("Processing NOT normalized mask", finalMask*255)
-            finalMask = (finalMask/int(maxVal))*255
-            cv2.imshow("Processing normalized mask", finalMask)
-            minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(finalMask)
             maxLocx, maxLocy = maxLoc[:2]
             pt2 = (maxLocx+200, maxLocy+100)
             pt1 = (maxLocx-200, maxLocy-100)
             cv2.rectangle(processingImage, pt1, pt2, 1111, thickness=2, lineType=8, shift=0)
-            cv2.imshow("Processing with car", processingImage)
+            cv2.imshow("Here is the car...", processingImage)
             cv2.waitKey()
             imageCont= imageCont+1
