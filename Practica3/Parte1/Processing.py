@@ -48,8 +48,6 @@ class Processing:
                 if(voteXrotated<maskY and voteXrotated>=0 and voteYrotated<maskX and voteYrotated>=0):
                     #Le damos la vuelta para que luego la imagen salga correcta
                     processingImageMask[int(voteYrotated)][int(voteXrotated)] += 1
-                cv2.imshow("Processing mask in progress", processingImageMask*255)
-                # cv2.waitKey()
         return processingImageMask
 
     #Procesamiento de las imagenes para detectar los coches

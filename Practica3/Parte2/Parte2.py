@@ -7,6 +7,14 @@ import os
 import glob
 
 
+#Fichero clasificador ya entrenado
+cascade_file = ("../haar/coches.xml")
+cascadeCars = cv2.CascadeClassifier(cascade_file)
+
+#Fichero clasificador ya entrenado
+cascade_file = ("../haar/matriculas.xml")
+cascadeMatriculas = cv2.CascadeClassifier(cascade_file)
+
 
 #Busca los rectangulos donde cree que esta la imagen
 def detect(img, cascade,vecinos,size):
@@ -24,27 +32,14 @@ def draw_rects(img,rects,color):
         cv2.rectangle(img,(x1,y1),(x2,y2),color,2)
 
 
-
 def detectarCoches():
 
-    #Fichero clasificador ya entrenado
-    cascade_file = ("../haar/coches.xml")
-
-    cascade = cv2.CascadeClassifier(cascade_file)
 
     os.chdir("../processing")
     for file in glob.glob("*.jpg"):
-        print("Imagen: ",file)
         img = cv2.imread(file,1)
 
-        rectangulos = detect(img, cascade, 2, 120)
-
-        #Pintar los rectangulos donde se supone que esta la imagen
-        if len(rectangulos)==0 :
-            print("Rectangulos vacios")
-        else:
-            for x1,y1,x2,y2 in rectangulos:
-                print (x1,y1,x2,y2)
+        rectangulos = detect(img, cascadeCars, 2, 120)
 
         vis = img.copy()
 
@@ -54,30 +49,15 @@ def detectarCoches():
         cv2.waitKey()
 
 
-
-
 def detectorMatriculas():
 
-    #Fichero clasificador ya entrenado
-    cascade_file = ("../haar/matriculas.xml")
-
-    cascade = cv2.CascadeClassifier(cascade_file)
 
     os.chdir("../processing")
 
     for file in glob.glob("*.jpg"):
-
-        print("Imagen: ",file)
         img = cv2.imread(file,1)
 
-        rectangulos = detect(img, cascade,4,30)
-
-        #Pintar los rectangulos donde se supone que esta la imagen
-        if len(rectangulos)==0 :
-            print("Rectangulos vacios")
-        else:
-            for x1,y1,x2,y2 in rectangulos:
-                print (x1,y1,x2,y2)
+        rectangulos = detect(img, cascadeMatriculas,4,30)
 
         vis = img.copy()
 
@@ -88,7 +68,7 @@ def detectorMatriculas():
 
 def main():
 
-    os.chdir("./training")
+    os.chdir("../training")
     print("DetectarCoches")
     detectarCoches()
     print("DetectarMatriculas")
