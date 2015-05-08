@@ -24,7 +24,7 @@ class Training:
 
     #Entrenamiento con imagenes de prueba
     def train (self, imageNum, kpNum):
-        os.chdir("./training")
+        os.chdir("../training")
         imageCont = 0
         for file in glob.glob("*.jpg"):
             if(imageCont==imageNum):
