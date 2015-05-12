@@ -195,7 +195,7 @@ def training():
 
         imagenUmbralizada = umbralizarImagen(imagen)
 
-        cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
+        #cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
 
         contornos, jerarquiaContornos=cv2.findContours(imagenUmbralizada, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
 
@@ -219,17 +219,19 @@ def training():
         pintarContornos(imagenUmbralizada,contornosEnNumero)
 
 
-        cv2.imshow("Imagen Umbralizada con contornos", imagenUmbralizada)
+       # cv2.imshow("Imagen Umbralizada con contornos", imagenUmbralizada)
 
         imagenContorno = imagenUmbralizada[y1Contorno:y2Contorno, x1Contorno:x2Contorno]
         imagenContorno = cv2.resize(imagenContorno,(10,10))
 
-        cv2.imshow("Imagen rescalada", imagenContorno)
+       # cv2.imshow("Imagen rescalada", imagenContorno)
 
         vectorDeCaracteristicas = transformarMatrizDeGrises(imagenContorno)
 
-        #Insertar clase en E y el vector de caracteristicas en C
-        clases.insert(len(clases),int(file[0]))
+
+        clases.insert(len(clases),file[0])
+
+        #clases = [0,1,2,3,4,5,6,7,9,9]
 
         columna = 0
         for elemento in vectorDeCaracteristicas:
@@ -241,7 +243,7 @@ def training():
         #print(vectorDeCaracteristicas)
 
     #print matrizCaracteristicas
-    print clases
+    #print clases
 
     # X = np.array([[-1, -1],
     #               [-2, -1],
@@ -261,6 +263,16 @@ def training():
 
     entrenadorLDA = LDA()
     entrenadorLDA.fit(matrizCaracteristicas, clases)
+    matrizCaracReducidas64 = entrenadorLDA.transform(matrizCaracteristicas)
+
+
+    matrizCaracReducidas32 = np.ndarray.astype(matrizCaracReducidas64, np.float32)
+
+   # print(matrizCaracReducidas32)
+
+    clasificador = cv2.NormalBayesClassifier()
+    clasificador.train()
+
     cv2.waitKey()
 
 
