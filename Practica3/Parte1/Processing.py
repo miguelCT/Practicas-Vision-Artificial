@@ -84,7 +84,9 @@ class Processing:
             maxLocx, maxLocy = maxLoc[:2]
             pt2 = (maxLocx+200, maxLocy+100)
             pt1 = (maxLocx-200, maxLocy-100)
-            cv2.rectangle(processingImage, pt1, pt2, 1111, thickness=2, lineType=8, shift=0)
+            processingImage = cv2.imread(file, 1)
+            cv2.circle(processingImage, maxLoc, 10, (0,255,0), thickness=7, lineType=8, shift=0)
+            cv2.rectangle(processingImage, pt1, pt2, (255,0,0), thickness=2, lineType=8, shift=0)
             cv2.imshow("Here is the car...", processingImage)
             cv2.waitKey()
             imageCont= imageCont+1
