@@ -4,6 +4,7 @@ import numpy as np
 import glob
 import os
 import cv2.cv as cv
+import sklearn.lda as LDA
 
 C_TAM_MAXIMO_CONTORNO = 10
 
@@ -227,12 +228,10 @@ def training():
 
 
 
-    for fila in c:
-        print(fila)
-    print(len(c))
-    print(e)
-
-        #cv2.waitKey()
+        entrenadorLDA = LDA.LDA()
+        entrenadorLDA.fit(c,e)
+        print(entrenadorLDA.predict(c))
+        cv2.waitKey()
 
 
 
