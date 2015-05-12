@@ -4,7 +4,7 @@ import numpy as np
 import glob
 import os
 import cv2.cv as cv
-import sklearn.lda as LDA
+from sklearn.lda import LDA
 
 C_TAM_MAXIMO_CONTORNO = 10
 
@@ -90,6 +90,7 @@ def imprimirMatrizDeGrises(imagen):
         print
 
 
+
 def transformarMatrizDeGrises(imagen):
     vectorDeCaracteristicas = []
 
@@ -98,6 +99,8 @@ def transformarMatrizDeGrises(imagen):
             vectorDeCaracteristicas.append(elemento)
 
     return vectorDeCaracteristicas
+
+
 
 def testing():
     os.chdir("./testing_ocr")
@@ -177,9 +180,12 @@ def testing():
 def training():
     os.chdir("./training_ocr")
 
+    numeroFicheros = len([name for name in os.listdir("./")])
+    print numeroFicheros
+
+    matrizCaracteristicas = np.zeros((numeroFicheros,100),np.uint8)
+    clases = []
     indexMatrizCaracteristicas = 0
-    c = []
-    e = []
 
     for file in glob.glob("*.jpg"):
 
@@ -223,15 +229,39 @@ def training():
         vectorDeCaracteristicas = transformarMatrizDeGrises(imagenContorno)
 
         #Insertar clase en E y el vector de caracteristicas en C
-        e.insert(len(e),file[0])
-        c.insert(len(c),vectorDeCaracteristicas)
+        clases.insert(len(clases),int(file[0]))
+
+        columna = 0
+        for elemento in vectorDeCaracteristicas:
+            matrizCaracteristicas[indexMatrizCaracteristicas][columna] = vectorDeCaracteristicas[columna]
+            columna += 1
+
+        indexMatrizCaracteristicas += 1
+
+        #print(vectorDeCaracteristicas)
+
+    #print matrizCaracteristicas
+    print clases
+
+    # X = np.array([[-1, -1],
+    #               [-2, -1],
+    #               [-3, -2],
+    #               [1, 1],
+    #               [2, 1],
+    #               [3, 2]])
+    #
+    # y = np.array([1, 1, 2, 3, 6, 6])
+    # clf = LDA()
+    # clf.fit(X, y)
+    #
+    # print X.shape
+    # print y
+    # print(clf.predict([[-0.8, -1]]))
 
 
-
-        entrenadorLDA = LDA.LDA()
-        entrenadorLDA.fit(c,e)
-        print(entrenadorLDA.predict(c))
-        cv2.waitKey()
+    entrenadorLDA = LDA()
+    entrenadorLDA.fit(matrizCaracteristicas, clases)
+    cv2.waitKey()
 
 
 
