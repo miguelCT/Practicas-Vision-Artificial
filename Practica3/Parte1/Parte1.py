@@ -13,7 +13,7 @@ import numpy as np
 
 
 TRAININGNUMBER = 33
-PRROCESSINGNUMBER = 32
+PRROCESSINGNUMBER = 33
 KPNUMBER = 150
 operations = Operations.Operations()
 
