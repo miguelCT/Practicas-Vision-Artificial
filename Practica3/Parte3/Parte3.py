@@ -38,7 +38,7 @@ def detectarCoches(file):
         ret, frame = cap.read()
         if(ret):
             # cv2.waitKey()
-            rectangulos = detect(frame, cascade, 2, 120)
+            rectangulos = detect(frame, cascade, 2, 40)
             vis = frame.copy()
 
             draw_rects(vis, rectangulos, (0, 255, 0))
@@ -67,7 +67,7 @@ def detectorMatriculas(file):
         ret, frame = cap.read()
         if(ret):
 
-            rectangulos = detect(frame, cascade,4,30)
+            rectangulos = detect(frame, cascade,4, 10)
 
             vis = frame.copy()
 

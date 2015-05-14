@@ -57,7 +57,7 @@ def detectorMatriculas():
     for file in glob.glob("*.jpg"):
         img = cv2.imread(file,1)
 
-        rectangulos = detect(img, cascadeMatriculas,4,30)
+        rectangulos = detect(img, cascadeMatriculas,4,10)
 
         vis = img.copy()
 
