@@ -92,11 +92,12 @@ def imprimirMatrizDeGrises(imagen):
 
 
 def transformarMatrizDeGrises(imagen):
-    vectorDeCaracteristicas = []
-
+    vectorDeCaracteristicas = np.zeros(100, np.uint8)
+    posicion = 0
     for fila in imagen:
         for elemento in fila:
-            vectorDeCaracteristicas.append(elemento)
+            vectorDeCaracteristicas[posicion] = elemento
+            posicion += 1
 
     return vectorDeCaracteristicas
 
@@ -109,7 +110,7 @@ def testing():
         imagen = cv2.imread(file,0)
 
         imagenUmbralizada = umbralizarImagen(imagen)
-        cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
+        #cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
 
 
         contornos, jerarquiaContornos=cv2.findContours(imagenUmbralizada, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
@@ -136,60 +137,124 @@ def testing():
             if len(contornosEnMatricula) == 0:
                 print("Contornos vacios")
             else:
-                pintarContornos(imagenContornos,contornosEnMatricula)
+                pintarContornos(imagenContornos, contornosEnMatricula)
 
-                cv2.imshow("Contornos",imagenContornos)
+                #cv2.imshow("Contornos",imagenContornos)
 
 
-                # for contorno in contornosEnMatricula:
-                #
-                #     x,y,w,h = cv2.boundingRect(contorno)
-                #     x1Contorno = x
-                #     y1Contorno = y
-                #     x2Contorno = x+w
-                #     y2Contorno = y+h
-                #
-                #
-                #     imagenContorno = np.copy(imagen)
-                #     imagenContorno = imagenContorno[y1Contorno:y2Contorno, x1Contorno:x2Contorno]
-                #
-                #     imagenContorno = cv2.resize(imagenContorno,(300,300))
-                #
-                #     contornoEnImagen = np.copy(imagenUmbralizada)
-                #
-                #     imagenContorno = umbralizarImagen(imagenContorno)
-                #
-                #     cv2.rectangle(contornoEnImagen, (x1Contorno, y1Contorno), (x2Contorno, y2Contorno), (255, 0, 255))
-                #     cv2.imshow("contornoEnImagen", contornoEnImagen)
-                #
-                #     cv2.imshow(("Contorno Recortado"), imagenContorno)
-                #
-                #
-                #     imagenContorno = cv2.resize(imagenContorno,(10,10))
-                #     cv2.imshow(("Contorno Recortado 10x10"), imagenContorno)
-                #
-                #
-                #     #imprimirMatrizDeGrises(imagenContorno)
-                #
-                #     vectorDeCaracteristicas = transformarMatrizDeGrises(imagenContorno)
-                #
-                #     print(vectorDeCaracteristicas)
-                #     print len(vectorDeCaracteristicas)
-                cv2.waitKey()
+                for contorno in contornosEnMatricula:
+
+                    x,y,w,h = cv2.boundingRect(contorno)
+                    x1Contorno = x
+                    y1Contorno = y
+                    x2Contorno = x+w
+                    y2Contorno = y+h
+
+
+                    imagenContorno = np.copy(imagen)
+                    imagenContorno = imagenContorno[y1Contorno:y2Contorno, x1Contorno:x2Contorno]
+
+                    imagenContorno = cv2.resize(imagenContorno,(300,300))
+
+                    contornoEnImagen = np.copy(imagenUmbralizada)
+
+                    imagenContorno = umbralizarImagen(imagenContorno)
+
+                    cv2.rectangle(contornoEnImagen, (x1Contorno, y1Contorno), (x2Contorno, y2Contorno), (255, 0, 255))
+                    #cv2.imshow("contornoEnImagen", contornoEnImagen)
+
+                    #cv2.imshow(("Contorno Recortado"), imagenContorno)
+
+
+                    imagenContorno = cv2.resize(imagenContorno, (10, 10))
+                    #cv2.imshow(("Contorno Recortado 10x10"), imagenContorno)
+
+                    #(imagenContorno)
+                    #imprimirMatrizDeGrises(imagenContorno)
+
+
+                    vectorDeCaracteristicas = transformarMatrizDeGrises(imagenContorno)
+
+                    #print(vectorDeCaracteristicas)
+                    #print len(vectorDeCaracteristicas)
+                #cv2.waitKey()
+
+                    return vectorDeCaracteristicas
+
+
+
+class KNearest():
+    def __init__(self, k = 3):
+        self.k = k
+        self.model = cv2.KNearest()
+
+    def train(self, samples, responses):
+        self.model = cv2.KNearest()
+        self.model.train(samples, responses)
+
+    def predict(self, samples):
+        retval, results, neigh_resp, dists = self.model.find_nearest(samples, self.k)
+        return results.ravel()
+
+
+
+def evaluate_model(model, digits, samples, labels):
+    resp = model.predict(samples)
+    print(resp)
+
+
+def obtenerContornos(imagenUmbralizada):
+    contornos, jerarquiaContornos=cv2.findContours(imagenUmbralizada, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+
+    for contorno in contornos:
+        x,y,w,h = cv2.boundingRect(contorno)
+        x1Contorno = x
+        y1Contorno = y
+        x2Contorno = x+w
+        y2Contorno = y+h
+        ladoXContorno = x2Contorno-x1Contorno
+        ladoYContorno = y2Contorno-y1Contorno
+
+
+        contornosEnNumero= []
+        #Verficar que es alto que ancho y que tiene mas de 10 x 10 pixeles
+        if ((ladoXContorno) < (ladoYContorno)) & ((ladoXContorno) > 10) & ((ladoYContorno) > 10):
+            contornosEnNumero.append(contorno)
+
+
+
+        #pintarContornos(imagenUmbralizada,contornosEnNumero)
+
+
+        # cv2.imshow("Imagen Umbralizada con contornos", imagenUmbralizada)
+        if len(contornosEnNumero) == 0:
+            imagenContorno = imagenUmbralizada[y1Contorno:y2Contorno, x1Contorno:x2Contorno]
+            imagenContorno = cv2.resize(imagenContorno,(10,10))
+        else:
+            imagenContorno = np.zeros((10,10),np.uint8)
+        return imagenContorno
+
+def reducirDimensionalidad(matrizCaracteristicas,clases):
+    entrenadorLDA = LDA()
+    entrenadorLDA.fit(matrizCaracteristicas, clases)
+    matrizCaracReducidas64 = entrenadorLDA.transform(matrizCaracteristicas)
+
+
+    matrizCaracReducidas32 = np.ndarray.astype(matrizCaracReducidas64, np.float32)
+    return matrizCaracReducidas32
+
 
 def training():
-    os.chdir("./training_ocr")
+    os.chdir("../training_ocr")
 
     numeroFicheros = len([name for name in os.listdir("./")])
-    print numeroFicheros
+    print "Archivos de training",numeroFicheros
 
     matrizCaracteristicas = np.zeros((numeroFicheros,100),np.uint8)
-    clases = []
+    clases = np.zeros((numeroFicheros),np.uint8)
     indexMatrizCaracteristicas = 0
 
     for file in glob.glob("*.jpg"):
-
-
 
         imagen = cv2.imread(file,0)
 
@@ -197,42 +262,20 @@ def training():
 
         #cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
 
-        contornos, jerarquiaContornos=cv2.findContours(imagenUmbralizada, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+        # cv2.imshow("Imagen rescalada", imagenContorno)
 
-        for contorno in contornos:
-            x,y,w,h = cv2.boundingRect(contorno)
-            x1Contorno = x
-            y1Contorno = y
-            x2Contorno = x+w
-            y2Contorno = y+h
-            ladoXContorno = x2Contorno-x1Contorno
-            ladoYContorno = y2Contorno-y1Contorno
+        imagenContorno = obtenerContornos(imagenUmbralizada)
 
-
-            contornosEnNumero= []
-            #Verficar que es alto que ancho y que tiene mas de 10 x 10 pixeles
-            if ((ladoXContorno) < (ladoYContorno)) & ((ladoXContorno) > 10) & ((ladoYContorno) > 10):
-                contornosEnNumero.append(contorno)
-
-
-
-        pintarContornos(imagenUmbralizada,contornosEnNumero)
-
-
-       # cv2.imshow("Imagen Umbralizada con contornos", imagenUmbralizada)
-
-        imagenContorno = imagenUmbralizada[y1Contorno:y2Contorno, x1Contorno:x2Contorno]
-        imagenContorno = cv2.resize(imagenContorno,(10,10))
-
-       # cv2.imshow("Imagen rescalada", imagenContorno)
+        if imagenContorno is None:
+            imagenContorno = np.zeros((10, 10), np.uint8)
 
         vectorDeCaracteristicas = transformarMatrizDeGrises(imagenContorno)
 
 
-        clases.insert(len(clases),file[0])
+        #etiquetas de cada clase. Tantas posiciones como filas en la matriz de caracteristicas
+        clases[indexMatrizCaracteristicas] = int(ord(file[0]))
 
-        #clases = [0,1,2,3,4,5,6,7,9,9]
-
+        #Add vector de caracteristicas a la matriz de caracteristicas
         columna = 0
         for elemento in vectorDeCaracteristicas:
             matrizCaracteristicas[indexMatrizCaracteristicas][columna] = vectorDeCaracteristicas[columna]
@@ -240,10 +283,6 @@ def training():
 
         indexMatrizCaracteristicas += 1
 
-        #print(vectorDeCaracteristicas)
-
-    #print matrizCaracteristicas
-    #print clases
 
     # X = np.array([[-1, -1],
     #               [-2, -1],
@@ -260,25 +299,19 @@ def training():
     # print y
     # print(clf.predict([[-0.8, -1]]))
 
+    matrizCaracReducidas32 = reducirDimensionalidad(matrizCaracteristicas,clases)
 
-    entrenadorLDA = LDA()
-    entrenadorLDA.fit(matrizCaracteristicas, clases)
-    matrizCaracReducidas64 = entrenadorLDA.transform(matrizCaracteristicas)
-
-
-    matrizCaracReducidas32 = np.ndarray.astype(matrizCaracReducidas64, np.float32)
-
-   # print(matrizCaracReducidas32)
-
-    clasificador = cv2.NormalBayesClassifier()
-    clasificador.train()
-
-    cv2.waitKey()
+    return matrizCaracReducidas32, clases
 
 
 
 def main():
-    #testing()
-    training()
+    sample_test = testing()
+    matrizCaracteristicasReducidas, etiquetasClases = training()
+
+    model = KNearest(k=4)
+    model.train(matrizCaracteristicasReducidas,etiquetasClases)
+    #evaluate_model(model,None,sample_test,etiquetasClases)
+
 
 main()
