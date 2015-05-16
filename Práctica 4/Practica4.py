@@ -92,11 +92,11 @@ def imprimirMatrizDeGrises(imagen):
 
 
 def transformarMatrizDeGrises(imagen):
-    vectorDeCaracteristicas = np.zeros(100, np.uint8)
+    vectorDeCaracteristicas = np.zeros((1,100), np.int32)
     posicion = 0
     for fila in imagen:
         for elemento in fila:
-            vectorDeCaracteristicas[posicion] = elemento
+            vectorDeCaracteristicas[0][posicion] = elemento
             posicion += 1
 
     return vectorDeCaracteristicas
@@ -105,11 +105,15 @@ def transformarMatrizDeGrises(imagen):
 
 def testing():
     os.chdir("./testing_ocr")
+    numeroFicheros = len([name for name in os.listdir("./")])
+    matrizMuestras = np.zeros((numeroFicheros,100),np.float32)
+    fila = 0
     for file in glob.glob("*.jpg"):
 
         imagen = cv2.imread(file,0)
 
         imagenUmbralizada = umbralizarImagen(imagen)
+
         #cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
 
 
@@ -165,22 +169,20 @@ def testing():
 
                     #cv2.imshow(("Contorno Recortado"), imagenContorno)
 
+                    #cv2.waitKey()
 
                     imagenContorno = cv2.resize(imagenContorno, (10, 10))
                     #cv2.imshow(("Contorno Recortado 10x10"), imagenContorno)
 
-                    #(imagenContorno)
-                    #imprimirMatrizDeGrises(imagenContorno)
+
+
 
 
                     vectorDeCaracteristicas = transformarMatrizDeGrises(imagenContorno)
-
-                    #print(vectorDeCaracteristicas)
-                    #print len(vectorDeCaracteristicas)
-                #cv2.waitKey()
-
                     return vectorDeCaracteristicas
-
+                    matrizMuestras[fila][:] = vectorDeCaracteristicas[:]
+                    fila += 1
+    return matrizMuestras
 
 
 class KNearest():
@@ -200,7 +202,7 @@ class KNearest():
 
 def evaluate_model(model, digits, samples, labels):
     resp = model.predict(samples)
-    print(resp)
+    print("evaluada: ", chr(resp))
 
 
 def obtenerContornos(imagenUmbralizada):
@@ -241,7 +243,7 @@ def reducirDimensionalidad(matrizCaracteristicas,clases):
 
 
     matrizCaracReducidas32 = np.ndarray.astype(matrizCaracReducidas64, np.float32)
-    return matrizCaracReducidas32
+    return entrenadorLDA,matrizCaracReducidas32
 
 
 def training():
@@ -250,8 +252,8 @@ def training():
     numeroFicheros = len([name for name in os.listdir("./")])
     print "Archivos de training",numeroFicheros
 
-    matrizCaracteristicas = np.zeros((numeroFicheros,100),np.uint8)
-    clases = np.zeros((numeroFicheros),np.uint8)
+    matrizCaracteristicas = np.zeros((numeroFicheros,100),np.int32)
+    clases = np.zeros((numeroFicheros,1),np.int32)
     indexMatrizCaracteristicas = 0
 
     for file in glob.glob("*.jpg"):
@@ -273,12 +275,12 @@ def training():
 
 
         #etiquetas de cada clase. Tantas posiciones como filas en la matriz de caracteristicas
-        clases[indexMatrizCaracteristicas] = int(ord(file[0]))
+        clases[indexMatrizCaracteristicas][0] = int(ord(file[0]))
 
         #Add vector de caracteristicas a la matriz de caracteristicas
         columna = 0
-        for elemento in vectorDeCaracteristicas:
-            matrizCaracteristicas[indexMatrizCaracteristicas][columna] = vectorDeCaracteristicas[columna]
+        for elemento in vectorDeCaracteristicas[0]:
+            matrizCaracteristicas[indexMatrizCaracteristicas][columna] = vectorDeCaracteristicas[0][columna]
             columna += 1
 
         indexMatrizCaracteristicas += 1
@@ -299,19 +301,21 @@ def training():
     # print y
     # print(clf.predict([[-0.8, -1]]))
 
-    matrizCaracReducidas32 = reducirDimensionalidad(matrizCaracteristicas,clases)
+    entrenador, matrizCaracReducidas32 = reducirDimensionalidad(matrizCaracteristicas,clases)
 
-    return matrizCaracReducidas32, clases
+    return entrenador,matrizCaracReducidas32, clases
 
 
 
 def main():
-    sample_test = testing()
-    matrizCaracteristicasReducidas, etiquetasClases = training()
+    matriz_test = testing()
+    entrenador, matrizCaracteristicasReducidas, etiquetasClases = training()
 
-    model = KNearest(k=4)
-    model.train(matrizCaracteristicasReducidas,etiquetasClases)
-    #evaluate_model(model,None,sample_test,etiquetasClases)
+    matriz_entrenada = np.ndarray.astype(entrenador.transform(matriz_test), np.float32)
+    model = KNearest(k=7)
+    model.train(matrizCaracteristicasReducidas, etiquetasClases)
+
+    evaluate_model(model, None, matriz_entrenada, etiquetasClases)
 
 
 main()
