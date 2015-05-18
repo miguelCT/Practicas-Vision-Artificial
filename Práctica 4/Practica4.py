@@ -1,4 +1,5 @@
 __author__ = 'Karen,Edu,Miguel'
+
 import cv2
 import numpy as np
 import glob
@@ -262,35 +263,43 @@ def evaluate_model(model, digits, samples, labels,tipo):
     print(tipo + ": " + ' '.join(respuesta))
 
 def obtenerContornos(imagenUmbralizada):
+    imagen = np.copy(imagenUmbralizada)
     contornos, jerarquiaContornos=cv2.findContours(imagenUmbralizada, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
 
+    contornosEnNumero= []
     for contorno in contornos:
         x,y,w,h = cv2.boundingRect(contorno)
         x1Contorno = x
         y1Contorno = y
         x2Contorno = x+w
         y2Contorno = y+h
-        ladoXContorno = x2Contorno-x1Contorno
-        ladoYContorno = y2Contorno-y1Contorno
 
-
-        contornosEnNumero= []
-        #Verficar que es alto que ancho y que tiene mas de 10 x 10 pixeles
-        if ((ladoXContorno) < (ladoYContorno)) & ((ladoXContorno) > 10) & ((ladoYContorno) > 10):
-            contornosEnNumero.append(contorno)
+        contornosEnNumero.append(contorno)
 
 
 
-        #pintarContornos(imagenUmbralizada,contornosEnNumero)
+    #pintarContornos(imagen,contornosEnNumero)
 
 
-        # cv2.imshow("Imagen Umbralizada con contornos", imagenUmbralizada)
-        if len(contornosEnNumero) == 0:
-            imagenContorno = imagenUmbralizada[y1Contorno:y2Contorno, x1Contorno:x2Contorno]
-            imagenContorno = cv2.resize(imagenContorno,(10,10))
-        else:
-            imagenContorno = np.zeros((10,10),np.uint8)
-        return imagenContorno
+    if len(contornosEnNumero) != 0:
+        contornosEnNumero = ordenarContornos(contornosEnNumero)
+        contornoBueno = contornosEnNumero[0]
+
+        x,y,w,h = cv2.boundingRect(contornoBueno)
+        x1Contorno = x
+        y1Contorno = y
+        x2Contorno = x+w
+        y2Contorno = y+h
+
+
+        imagenContorno = imagen[y1Contorno:y2Contorno, x1Contorno:x2Contorno]
+
+        imagenContorno10 = cv2.resize(imagenContorno,(10,10))
+
+    else:
+        imagenContorno10 = np.zeros((10,10),np.uint8)
+
+    return imagenContorno10
 
 def entrenarLDA(matrizCaracteristicas,clases):
     entrenadorLDA = LDA()
@@ -315,15 +324,17 @@ def training():
 
         imagenUmbralizada = umbralizarImagen(imagen)
 
-        #cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
+        cv2.imshow("Imagen Umbralizada", imagenUmbralizada)
 
         # cv2.imshow("Imagen rescalada", imagenContorno)
 
         imagenContorno = obtenerContornos(imagenUmbralizada)
 
         if imagenContorno is None:
-            imagenContorno = np.zeros((10, 10), np.uint8)
+            imagenContorno = np.zeros((10, 10), np.int32)
 
+        cv2.imshow("Imagen Contornos", imagenContorno)
+        cv2.waitKey()
         vectorDeCaracteristicas = transformarMatrizDeGrises(imagenContorno)
 
 
@@ -338,24 +349,6 @@ def training():
 
         indexMatrizCaracteristicas += 1
 
-
-    # X = np.array([[-1, -1],
-    #               [-2, -1],
-    #               [-3, -2],
-    #               [1, 1],
-    #               [2, 1],
-    #               [3, 2]])
-    #
-    # y = np.array([1, 1, 2, 3, 6, 6])
-    # clf = LDA()
-    # clf.fit(X, y)
-    #
-    # print X.shape
-    # print y
-    # print(clf.predict([[-0.8, -1]]))
-
-
-
     return matrizCaracteristicas, clases
 
 
@@ -363,30 +356,44 @@ def training():
 def main():
 
     matrizCaracteristicas, etiquetasClases = training()
-    entrenador = entrenarLDA(matrizCaracteristicas,etiquetasClases)
-    matrizCaracteristicasReducidas = reducirDimensionalidad(entrenador,matrizCaracteristicas)
 
-    modelKNearest = KNearest(k=7)
+    entrenador = entrenarLDA(matrizCaracteristicas,etiquetasClases)
+    #matrizCaracteristicasReducidas = reducirDimensionalidad(entrenador,matrizCaracteristicas)
+    matrizCaracteristicasReducidas = np.ndarray.astype(matrizCaracteristicas,np.float32)
+
+    modelKNearest = KNearest(k=2)
     modelKNearest.train(matrizCaracteristicasReducidas, etiquetasClases)
 
     modelNormalBayesClassifier = NormalBayesClassifier()
     modelNormalBayesClassifier.train(matrizCaracteristicasReducidas,etiquetasClases)
 
-    # modelEM = EM()
-    # modelEM.train(matrizCaracteristicasReducidas,etiquetasClases)
+    modelEM = EM()
+    modelEM.train(matrizCaracteristicasReducidas,etiquetasClases)
 
-    os.chdir("../testing_ocr")
-    for file in glob.glob("*.jpg"):
+    #os.chdir("../testing_ocr")
+    listaArchivos = glob.glob("*.jpg")
+    index = 0
+    C_SALTO = 2
+    while (index < 40) & (index * C_SALTO < len(listaArchivos)):
+        file = listaArchivos[index * C_SALTO]
         print(file)
-        matriz_test = testing(file)
-        matriz_testReducida = reducirDimensionalidad(entrenador,matriz_test)
-
+        #matriz_test = testing(file)
         imagen = cv2.imread(file, 0)
+        imagenUmbralizada = umbralizarImagen(imagen)
+        imagenUmbralizada10 = cv2.resize(imagenUmbralizada, (10,10))
+        matriz_test = transformarMatrizDeGrises(imagenUmbralizada10)
+        matriz_testReducida = np.ndarray.astype(matriz_test, np.float32)
+        # matriz_testReducida = reducirDimensionalidad(entrenador,matriz_test)
+
+        #imagen = cv2.imread(file, 0)
         cv2.imshow("Imagen",imagen)
 
         evaluate_model(modelKNearest, None, matriz_testReducida, etiquetasClases,"KNearest")
         evaluate_model(modelNormalBayesClassifier,None,matriz_testReducida,etiquetasClases,"NormalBayesClassifier")
-        # evaluate_model(modelEM,None,matriz_testReducida,etiquetasClases,"EM")
+        evaluate_model(modelEM,None,matriz_testReducida,etiquetasClases,"EM")
+
         cv2.waitKey()
+
+        index += 1
 
 main()
