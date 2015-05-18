@@ -36,18 +36,11 @@ class Processing:
                 processingKpX,processingKpY = processingKp.position[:2]
                 voteX = ((xVectorScaled + processingKpX)/10)
                 voteY = ((yVectorScaled + processingKpY)/10)
-                # Rotacion del vector de votacion
-                voteXrotated = (voteX*math.cos(rotationAngle) - voteY*math.sin(rotationAngle))
-                voteYrotated = (voteX*math.sin(rotationAngle) + voteY * math.cos(rotationAngle))
-
-                # ATENCION: Con esto cancelas la rotacion
-                voteXrotated = voteX
-                voteYrotated = voteY
 
                 maskX, maskY = processingImageMask.shape[:2]
-                if(voteXrotated<maskY and voteXrotated>=0 and voteYrotated<maskX and voteYrotated>=0):
+                if(voteX<maskY and voteX>=0 and voteY<maskX and voteY>=0):
                     #Le damos la vuelta para que luego la imagen salga correcta
-                    processingImageMask[int(voteYrotated)][int(voteXrotated)] += 1
+                    processingImageMask[int(voteY)][int(voteX)] += 1
         return processingImageMask
 
     #Procesamiento de las imagenes para detectar los coches
