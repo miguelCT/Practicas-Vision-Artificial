@@ -75,7 +75,9 @@ def filtrarContornos(contornos,matricula):
 
                 x1ContornoAnterior, y1ContornoAnterior, wContornoAnterior, hContornoAnterior = cv2.boundingRect(contornoAnterior)
 
-                if not (x1ContornoAnterior + 2 >= x1Contorno) & (x1ContornoAnterior + wContornoAnterior < x1Contorno):
+                #if not (x1ContornoAnterior + 2 >= x1Contorno) & (x1ContornoAnterior + wContornoAnterior < x1Contorno):
+                if not (x1ContornoAnterior + 2 >= x):
+
                     contornosEnMatricula.append(contorno)
             else:
                 contornosEnMatricula.append(contorno)
@@ -364,28 +366,28 @@ def training():
 
 def main():
 
-    # matrizCaracteristicas, etiquetasClases = training()
-    #
-    # entrenador = entrenarLDA(matrizCaracteristicas,etiquetasClases)
-    # matrizCaracteristicasReducidas = reducirDimensionalidad(entrenador,matrizCaracteristicas)
-    # #matrizCaracteristicasReducidas = np.ndarray.astype(matrizCaracteristicas,np.float32)
-    #
-    # modelKNearest = KNearest(k=3)
-    # modelKNearest.train(matrizCaracteristicasReducidas, etiquetasClases)
-    #
-    # modelKNearest2 = KNearest(k=5)
-    # modelKNearest2.train(matrizCaracteristicasReducidas,etiquetasClases)
-    #
-    # modelKNearest3 = KNearest(k=7)
-    # modelKNearest3.train(matrizCaracteristicasReducidas,etiquetasClases)
-    #
-    # modelNormalBayesClassifier = NormalBayesClassifier()
-    # modelNormalBayesClassifier.train(matrizCaracteristicasReducidas,etiquetasClases)
-    #
-    # modelEM = EM()
-    # modelEM.train(matrizCaracteristicasReducidas,etiquetasClases)
+    matrizCaracteristicas, etiquetasClases = training()
 
-    os.chdir("./testing_ocr")
+    entrenador = entrenarLDA(matrizCaracteristicas,etiquetasClases)
+    matrizCaracteristicasReducidas = reducirDimensionalidad(entrenador,matrizCaracteristicas)
+    #matrizCaracteristicasReducidas = np.ndarray.astype(matrizCaracteristicas,np.float32)
+
+    modelKNearest = KNearest(k=3)
+    modelKNearest.train(matrizCaracteristicasReducidas, etiquetasClases)
+
+    modelKNearest2 = KNearest(k=5)
+    modelKNearest2.train(matrizCaracteristicasReducidas,etiquetasClases)
+
+    modelKNearest3 = KNearest(k=7)
+    modelKNearest3.train(matrizCaracteristicasReducidas,etiquetasClases)
+
+    modelNormalBayesClassifier = NormalBayesClassifier()
+    modelNormalBayesClassifier.train(matrizCaracteristicasReducidas,etiquetasClases)
+
+    modelEM = EM()
+    modelEM.train(matrizCaracteristicasReducidas,etiquetasClases)
+
+    os.chdir("../testing_ocr")
     listaArchivos = glob.glob("*.jpg")
     index = 0
     C_SALTO = 1
@@ -397,7 +399,7 @@ def main():
         # imagenUmbralizada = umbralizarImagen(imagen)
         # imagenUmbralizada10 = cv2.resize(imagenUmbralizada, (10,10))
         # matriz_test = transformarMatrizDeGrises(imagenUmbralizada10)
-        # matriz_testReducida = reducirDimensionalidad(entrenador,matriz_test)
+        matriz_testReducida = reducirDimensionalidad(entrenador,matriz_test)
 
         #matriz_testReducida = np.ndarray.astype(matriz_test, np.float32)
 
@@ -412,10 +414,10 @@ def main():
         #imagen = cv2.imread(file, 0)
         #cv2.imshow("Imagen", pintarImagen)
 
-        # evaluate_model(modelKNearest, None, matriz_testReducida, etiquetasClases, "KNearest, k = " + str(modelKNearest.k))
-        # evaluate_model(modelKNearest2, None, matriz_testReducida, etiquetasClases, "KNearest, k = " + str(modelKNearest2.k))
-        # evaluate_model(modelKNearest3, None, matriz_testReducida, etiquetasClases, "KNearest, k = " + str(modelKNearest3.k))
-        # evaluate_model(modelNormalBayesClassifier, None, matriz_testReducida, etiquetasClases, "NormalBayesClassifier")
+        evaluate_model(modelKNearest, None, matriz_testReducida, etiquetasClases, "KNearest, k = " + str(modelKNearest.k))
+        evaluate_model(modelKNearest2, None, matriz_testReducida, etiquetasClases, "KNearest, k = " + str(modelKNearest2.k))
+        evaluate_model(modelKNearest3, None, matriz_testReducida, etiquetasClases, "KNearest, k = " + str(modelKNearest3.k))
+        evaluate_model(modelNormalBayesClassifier, None, matriz_testReducida, etiquetasClases, "NormalBayesClassifier")
         #evaluate_model(modelEM,None,matriz_testReducida,etiquetasClases,"EM")
 
         cv2.waitKey()
