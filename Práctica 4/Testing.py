@@ -1,13 +1,13 @@
 __author__ = 'Edu'
 
 import cv2
-import Operations
+import CommonOperations
 import numpy as np
 
 class Processing:
 
     def __init__(self):
-        self.operations = Operations.Operations()
+        self.operations = CommonOperations.Operations()
 
     def testing(self,file):
 

@@ -2,13 +2,13 @@ __author__ = 'Edu'
 
 import glob
 import os
-import Operations
+import CommonOperations
 import numpy as np
 import cv2
 
 class Training:
     def __init__(self):
-        self.operations = Operations.Operations()
+        self.operations = CommonOperations.Operations()
     def training(self):
         os.chdir("./training_ocr")
 

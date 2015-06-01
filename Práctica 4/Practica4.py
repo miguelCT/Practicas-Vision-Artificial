@@ -5,11 +5,11 @@ import numpy as np
 import glob
 import os
 from sklearn.lda import LDA
-import Operations
+import CommonOperations
 import NormalBayesClassifier
 import KNearest
 import Training
-import Processing
+import Testing
 
 def entrenarLDA(matrizCaracteristicas,clases):
     entrenadorLDA = LDA()
@@ -20,9 +20,9 @@ def reducirDimensionalidad(entrenador,matriz):
     return np.ndarray.astype(entrenador.transform(matriz), np.float32)
 
 def main():
-    operations = Operations.Operations()
+    operations = CommonOperations.Operations()
     training = Training.Training()
-    processing = Processing.Processing()
+    processing = Testing.Processing()
     matrizCaracteristicas, etiquetasClases = training.training()
 
     entrenador = entrenarLDA(matrizCaracteristicas,etiquetasClases)
