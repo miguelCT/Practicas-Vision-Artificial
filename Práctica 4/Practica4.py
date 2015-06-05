@@ -10,23 +10,17 @@ import NormalBayesClassifier
 import KNearest
 import Training
 import Testing
+import EntrenadorLDA
 
-def entrenarLDA(matrizCaracteristicas,clases):
-    entrenadorLDA = LDA()
-    entrenadorLDA.fit(matrizCaracteristicas, clases.ravel())
-    return entrenadorLDA
-
-def reducirDimensionalidad(entrenador,matriz):
-    return np.ndarray.astype(entrenador.transform(matriz), np.float32)
 
 def main():
     operations = CommonOperations.Operations()
     training = Training.Training()
     processing = Testing.Processing()
     matrizCaracteristicas, etiquetasClases = training.training()
-
-    entrenador = entrenarLDA(matrizCaracteristicas,etiquetasClases)
-    matrizCaracteristicasReducidas = reducirDimensionalidad(entrenador,matrizCaracteristicas)
+    LDA = EntrenadorLDA.EntrenadorLDA()
+    entrenadorLDA = LDA.entrenarLDA(matrizCaracteristicas,etiquetasClases)
+    matrizCaracteristicasReducidas = LDA.reducirDimensionalidad(entrenadorLDA,matrizCaracteristicas)
 
     modelKNearest = KNearest.KNearest(k=3)
     modelKNearest.train(matrizCaracteristicasReducidas, etiquetasClases)
@@ -46,7 +40,7 @@ def main():
     for file in listaArchivos:
         print(file)
         matriz_test, pintarImagen = processing.testing(file)
-        matriz_testReducida = reducirDimensionalidad(entrenador,matriz_test)
+        matriz_testReducida = LDA.reducirDimensionalidad(entrenadorLDA,matriz_test)
 
         cv2.imshow(file,pintarImagen)
         operations.evaluate_model(modelKNearest, matriz_testReducida, "KNearest, k = " + str(modelKNearest.k))
