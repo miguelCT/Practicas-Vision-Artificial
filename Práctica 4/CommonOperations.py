@@ -110,14 +110,13 @@ class Operations:
 
         return vectorDeCaracteristicas
 
-    def evaluate_model(self,model, samples, tipo):
+    def evaluate_model(self ,model, samples, tipo):
         resp = model.predict(samples)
-        respuesta = []
-
+        respuesta = ""
         for elemento in resp:
             if elemento == 0:
-                respuesta.append('ESP')
+                respuesta += 'ESP '
             else:
-                respuesta.append(chr(elemento))
+                respuesta += (chr(elemento))
 
-        print(tipo + ": " + ' '.join(respuesta))
+        return (respuesta)

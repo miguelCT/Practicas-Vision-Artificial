@@ -27,7 +27,10 @@ class Processing:
         #Pintar las matriculas donde se supone que esta en la imagen
         #
         if len(rectangulos) == 0:
+            # TODO revisar pq no detecta la matricula
             print("Matricula no detectada")
+            return None, pintarImagen
+
         else:
             matricula = rectangulos[0]
 
