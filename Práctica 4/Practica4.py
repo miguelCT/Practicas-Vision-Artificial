@@ -26,13 +26,13 @@ def main():
     modelKNearest.train(matrizCaracteristicasReducidas, etiquetasClases)
 
     modelKNearest2 = KNearest.KNearest(k=5)
-    modelKNearest2.train(matrizCaracteristicasReducidas,etiquetasClases)
+    modelKNearest2.train(matrizCaracteristicasReducidas, etiquetasClases)
 
     modelKNearest3 = KNearest.KNearest(k=7)
-    modelKNearest3.train(matrizCaracteristicasReducidas,etiquetasClases)
+    modelKNearest3.train(matrizCaracteristicasReducidas, etiquetasClases)
 
     modelNormalBayesClassifier = NormalBayesClassifier.NormalBayesClassifier()
-    modelNormalBayesClassifier.train(matrizCaracteristicasReducidas,etiquetasClases)
+    modelNormalBayesClassifier.train(matrizCaracteristicasReducidas, etiquetasClases)
 
 
     os.chdir("./testing_full_system")
@@ -41,15 +41,26 @@ def main():
     for file in listaArchivos:
         print(file)
         matriz_test, pintarImagen = processing.testing(file)
+        centroX, centroY = operations.detectorCentroCoche(file=file)
+        print ("Centro: " + str(centroX) + " " + str(centroY))
         if matriz_test != None:
             matriz_testReducida = LDA.reducirDimensionalidad(entrenadorLDA,matriz_test)
-            operations.evaluate_model(modelKNearest, matriz_testReducida, "KNearest, k = " + str(modelKNearest.k))
-            operations.evaluate_model(modelKNearest2, matriz_testReducida, "KNearest, k = " + str(modelKNearest2.k))
+            matricula1 = operations.evaluate_model(modelKNearest, matriz_testReducida, "KNearest, k = " + str(modelKNearest.k))
+            print ("KNearest, k " + str(modelKNearest.k) + " = " + matricula1)
+            matricula2 = operations.evaluate_model(modelKNearest2, matriz_testReducida, "KNearest, k = " + str(modelKNearest2.k))
+            print ("KNearest, k " + str(modelKNearest2.k) + " = " + matricula2)
             matricula = operations.evaluate_model(modelKNearest3, matriz_testReducida, "KNearest, k = " + str(modelKNearest3.k))
-            operations.evaluate_model(modelNormalBayesClassifier, matriz_testReducida, "NormalBayesClassifier")
+            print ("KNearest, k " + str(modelKNearest3.k) + " = " + matricula)
+            matriculaN = operations.evaluate_model(modelNormalBayesClassifier, matriz_testReducida, "NormalBayesClassifier")
+            print ("NormalBayesClassifier " + " = " + matriculaN)
         else:
             matricula = "NODETECTED"
-        resultsLine = file + " " + matricula + "\n"
+
+
+
+        resultsLine = file + " " + str(centroX) + " " + str(centroY) + " " + matricula + "\n"
         resultsFile.write(resultsLine)
+
+
     resultsFile.close()
 main()

@@ -38,7 +38,8 @@ class Processing:
             # corresponde a un digito de una matricula
             #
             contornosEnMatricula = self.operations.filtrarContornos(contornos, matricula)
-
+            x1,y1,x2,y2 = matricula
+            cv2.rectangle(pintarImagen,(x1,y1),(x2,y2),(0,0,0))
 
 
             if len(contornosEnMatricula) == 0:

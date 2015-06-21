@@ -14,6 +14,25 @@ class Operations:
         rects[:,2:] += rects[:,:2]
         return rects
 
+
+    def detectorCentroCoche(self,file):
+
+        cascade_file = ("../haar/coches.xml")
+
+        cascade = cv2.CascadeClassifier(cascade_file)
+        img = cv2.imread(file)
+        rectangulos = Operations.detect(self,img=img, cascade=cascade, vecinos=3,size= 30)
+
+        if len(rectangulos)>0:
+
+            x1, y1, x2, y2 = rectangulos[0]
+            centro = (x2-x1)/2, (y2-y1)/2
+
+            return centro
+
+        else:
+            return 0, 0
+
     def detectorMatriculas(self,img):
 
         #Fichero clasificador ya entrenado
@@ -115,7 +134,7 @@ class Operations:
         respuesta = ""
         for elemento in resp:
             if elemento == 0:
-                respuesta += 'ESP '
+                respuesta += 'ESP'
             else:
                 respuesta += (chr(elemento))
 
