@@ -32,10 +32,7 @@ class Training:
             #Introducimos el nombre de la imagen que estamos procesando ,ya sea XXX o ESP, en las clases
             #
             nombre = str(file[0:3])
-
-            if (nombre == 'ESP'):
-                clases[indexMatrizCaracteristicas][0] = 0
-            else:
+            if (nombre != 'ESP'):
                 clases[indexMatrizCaracteristicas][0] = int(ord(file[0]))
 
             #Anhadimos el vector de caracteristicas a la matriz de caracteristicas

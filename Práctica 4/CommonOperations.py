@@ -24,9 +24,8 @@ class Operations:
         rectangulos = Operations.detect(self,img=img, cascade=cascade, vecinos=3,size= 30)
 
         if len(rectangulos)>0:
-
             x1, y1, x2, y2 = rectangulos[0]
-            centro = (x2-x1)/2, (y2-y1)/2
+            centro = (x2+x1)/2, (y2+y1)/2
 
             return centro
 
@@ -129,13 +128,11 @@ class Operations:
 
         return vectorDeCaracteristicas
 
-    def evaluate_model(self ,model, samples, tipo):
+    def evaluate_model(self ,model, samples):
         resp = model.predict(samples)
         respuesta = ""
         for elemento in resp:
-            if elemento == 0:
-                respuesta += 'ESP'
-            else:
+            if elemento != 0:
                 respuesta += (chr(elemento))
 
         return (respuesta)

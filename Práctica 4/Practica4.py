@@ -45,13 +45,13 @@ def main():
         print ("Centro: " + str(centroX) + " " + str(centroY))
         if matriz_test != None:
             matriz_testReducida = LDA.reducirDimensionalidad(entrenadorLDA,matriz_test)
-            matricula1 = operations.evaluate_model(modelKNearest, matriz_testReducida, "KNearest, k = " + str(modelKNearest.k))
+            matricula1 = operations.evaluate_model(modelKNearest, matriz_testReducida)
             print ("KNearest, k " + str(modelKNearest.k) + " = " + matricula1)
-            matricula2 = operations.evaluate_model(modelKNearest2, matriz_testReducida, "KNearest, k = " + str(modelKNearest2.k))
+            matricula2 = operations.evaluate_model(modelKNearest2, matriz_testReducida)
             print ("KNearest, k " + str(modelKNearest2.k) + " = " + matricula2)
-            matricula = operations.evaluate_model(modelKNearest3, matriz_testReducida, "KNearest, k = " + str(modelKNearest3.k))
+            matricula = operations.evaluate_model(modelKNearest3, matriz_testReducida)
             print ("KNearest, k " + str(modelKNearest3.k) + " = " + matricula)
-            matriculaN = operations.evaluate_model(modelNormalBayesClassifier, matriz_testReducida, "NormalBayesClassifier")
+            matriculaN = operations.evaluate_model(modelNormalBayesClassifier, matriz_testReducida)
             print ("NormalBayesClassifier " + " = " + matriculaN)
         else:
             matricula = "NODETECTED"
