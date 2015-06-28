@@ -41,9 +41,9 @@ class Processing:
             x1,y1,x2,y2 = matricula
             cv2.rectangle(pintarImagen,(x1,y1),(x2,y2),(0,0,0))
 
-
             if len(contornosEnMatricula) == 0:
-                print("No se han detectado contornos en la matricula")
+                print("No detectados contornos")
+                return None, pintarImagen
             else:
                 #Pintamos los contornos en una copia de la imagen original para que podamos ver el resultado
                 # con los contornos reconocidos por el sistema

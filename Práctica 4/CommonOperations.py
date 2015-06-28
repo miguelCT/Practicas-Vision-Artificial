@@ -21,7 +21,7 @@ class Operations:
 
         cascade = cv2.CascadeClassifier(cascade_file)
         img = cv2.imread(file)
-        rectangulos = Operations.detect(self,img=img, cascade=cascade, vecinos=3,size= 30)
+        rectangulos = Operations.detect(self,img=img, cascade=cascade, vecinos=6, size= 120)
 
         if len(rectangulos)>0:
             x1, y1, x2, y2 = rectangulos[0]
@@ -39,7 +39,7 @@ class Operations:
 
         cascade = cv2.CascadeClassifier(cascade_file)
 
-        rectangulos = Operations.detect(self,img=img, cascade=cascade, vecinos=3,size= 30)
+        rectangulos = Operations.detect(self,img=img, cascade=cascade, vecinos=4,size= 10)
 
         return rectangulos
 
@@ -53,11 +53,13 @@ class Operations:
             y2Contorno = y+h
 
             cv2.rectangle(imagen, (x1Contorno, y1Contorno), (x2Contorno, y2Contorno), (0, 0, 0))
+        # cv2.imshow("imagen", imagen)
+        # cv2.waitKey()
         return imagen
 
     def filtrarContornos(self,contornos,matricula):
 
-        C_TAM_MAXIMO_CONTORNO = 10
+        C_TAM_MAXIMO_CONTORNO = 8
 
         contornosEnMatricula = []
 
