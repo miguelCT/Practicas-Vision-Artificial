@@ -16,9 +16,10 @@ import EntrenadorLDA
 def main():
     operations = CommonOperations.Operations()
     training = Training.Training()
-    processing = Testing.Testing()
-    matrizCaracteristicas, etiquetasClases = training.training()
+    testing = Testing.Testing()
     LDA = EntrenadorLDA.EntrenadorLDA()
+
+    matrizCaracteristicas, etiquetasClases = training.training()
     entrenadorLDA = LDA.entrenarLDA(matrizCaracteristicas,etiquetasClases)
     matrizCaracteristicasReducidas = LDA.reducirDimensionalidad(entrenadorLDA,matrizCaracteristicas)
 
@@ -39,7 +40,7 @@ def main():
     listaArchivos = glob.glob("*.jpg")
     resultsFile = open('../results.txt', 'w')
     for file in listaArchivos:
-        matriz_test = processing.testing(file)
+        matriz_test = testing.testing(file)
         centroX, centroY = operations.detectorCentroCoche(file=file)
         if matriz_test != None:
 
