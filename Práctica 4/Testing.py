@@ -4,7 +4,7 @@ import cv2
 import CommonOperations
 import numpy as np
 
-class Processing:
+class Testing:
 
     def __init__(self):
         self.operations = CommonOperations.Operations()
@@ -17,7 +17,6 @@ class Processing:
         #
         imagen = cv2.imread(file, 0)
         imagenUmbralizada = self.operations.umbralizarImagen(imagen)
-        pintarImagen = np.copy(imagen)
         imagenContorno = np.copy(imagenUmbralizada)
 
 
@@ -27,9 +26,7 @@ class Processing:
         #Pintar las matriculas donde se supone que esta en la imagen
         #
         if len(rectangulos) == 0:
-            # TODO revisar pq no detecta la matricula
-            print("Matricula no detectada")
-            return None, pintarImagen
+            return None
 
         else:
             matricula = rectangulos[0]
@@ -38,17 +35,10 @@ class Processing:
             # corresponde a un digito de una matricula
             #
             contornosEnMatricula = self.operations.filtrarContornos(contornos, matricula)
-            x1,y1,x2,y2 = matricula
-            cv2.rectangle(pintarImagen,(x1,y1),(x2,y2),(0,0,0))
 
             if len(contornosEnMatricula) == 0:
-                print("No detectados contornos")
-                return None, pintarImagen
+                return None
             else:
-                #Pintamos los contornos en una copia de la imagen original para que podamos ver el resultado
-                # con los contornos reconocidos por el sistema
-                #
-                self.operations.pintarContornos(pintarImagen, contornosEnMatricula)
 
 
                 matrizMuestras = np.zeros((len(contornosEnMatricula),100),np.float32)
@@ -74,4 +64,4 @@ class Processing:
                     matrizMuestras[fila][:] = vectorDeCaracteristicas[:]
                     fila += 1
 
-            return matrizMuestras, pintarImagen
+            return matrizMuestras

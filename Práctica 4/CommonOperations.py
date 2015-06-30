@@ -11,7 +11,7 @@ class Operations:
         rects = cascade.detectMultiScale(img, scaleFactor=1.2, minNeighbors=vecinos, minSize=(size, size), flags=cv.CV_HAAR_SCALE_IMAGE)
         if len(rects) == 0:
             return []
-        rects[:,2:] += rects[:,:2]
+        rects[:, 2:] += rects[:,:2]
         return rects
 
 
@@ -43,19 +43,6 @@ class Operations:
 
         return rectangulos
 
-    def pintarContornos (self,imagen,contornos):
-
-        for contorno in contornos:
-            x,y,w,h = cv2.boundingRect(contorno)
-            x1Contorno = x
-            y1Contorno = y
-            x2Contorno = x+w
-            y2Contorno = y+h
-
-            cv2.rectangle(imagen, (x1Contorno, y1Contorno), (x2Contorno, y2Contorno), (0, 0, 0))
-        # cv2.imshow("imagen", imagen)
-        # cv2.waitKey()
-        return imagen
 
     def filtrarContornos(self,contornos,matricula):
 

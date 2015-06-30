@@ -16,7 +16,7 @@ import EntrenadorLDA
 def main():
     operations = CommonOperations.Operations()
     training = Training.Training()
-    processing = Testing.Processing()
+    processing = Testing.Testing()
     matrizCaracteristicas, etiquetasClases = training.training()
     LDA = EntrenadorLDA.EntrenadorLDA()
     entrenadorLDA = LDA.entrenarLDA(matrizCaracteristicas,etiquetasClases)
@@ -39,20 +39,17 @@ def main():
     listaArchivos = glob.glob("*.jpg")
     resultsFile = open('../results.txt', 'w')
     for file in listaArchivos:
-        print(file)
-        matriz_test, pintarImagen = processing.testing(file)
+        matriz_test = processing.testing(file)
         centroX, centroY = operations.detectorCentroCoche(file=file)
-        print ("Centro: " + str(centroX) + " " + str(centroY))
         if matriz_test != None:
+
+            #Lo comentado se puede desbloquear para probar con otro clasificador diferente
+            #Por defecto utilizamos KNearest con k = 5
             matriz_testReducida = LDA.reducirDimensionalidad(entrenadorLDA,matriz_test)
             # matricula = operations.evaluate_model(modelKNearest, matriz_testReducida)
-            # print ("KNearest, k " + str(modelKNearest.k) + " = " + matricula1)
             matricula = operations.evaluate_model(modelKNearest2, matriz_testReducida)
-            # print ("KNearest, k " + str(modelKNearest2.k) + " = " + matricula2)
             # matricula = operations.evaluate_model(modelKNearest3, matriz_testReducida)
-            # print ("KNearest, k " + str(modelKNearest3.k) + " = " + matricula)
             # matricula = operations.evaluate_model(modelNormalBayesClassifier, matriz_testReducida)
-            # print ("NormalBayesClassifier " + " = " + matriculaN)
         else:
             matricula = "NODETECTED"
 
